@@ -1075,7 +1075,7 @@ export default function Quiz() {
                 onClick={() => {
                   Analytics.affiliateClick("parent_report");
                   // TODO: Replace with your Stripe payment link from dashboard.stripe.com/payment-links
-                  alert("Stripe not connected yet. Replace this with your real Stripe payment link in Quiz.jsx.");
+                  window.open("https://buy.stripe.com/fZu6oz7g43bp56w0oR9b000", "_blank");
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
                 Get the Full Report — $9.99 →
