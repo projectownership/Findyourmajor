@@ -503,6 +503,10 @@ export default function Quiz() {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "" });
+  const [showParentForm, setShowParentForm] = useState(false);
+  const [parentEmail, setParentEmail]       = useState("");
+  const [studentName, setStudentName]       = useState("");
+  const [parentSent, setParentSent]         = useState(false);
   const topRef = useRef(null);
 
   const q = QUESTIONS[step];
@@ -547,6 +551,30 @@ export default function Quiz() {
     a.download = "major-match-results.txt";
     a.click();
     showToast("📄 Downloaded!");
+  }
+
+  // ── Parent feature helpers ────────────────────────────────────────────────
+
+  function generateParentText() {
+    const name = studentName.trim() || "your student";
+    const top3 = results.slice(0, 3).map(r =>
+      `  ${r.rank}. ${r.name} (${r.fitScore}% fit)\n     ${r.why}\n     Salary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\n     Careers: ${r.careers.slice(0,3).join(", ")}`
+    ).join("\n\n");
+    return `Hi,\n\n${name} just used FindYourMajor.org and received their personalized AI major recommendations. Here are their top 3 matches:\n\n${top3}\n\nYou can explore all 5 results and video resources at:\nhttps://findyourmajor.org\n\nThis tool is completely free. Each recommendation includes salary data, career paths, and a first step to explore the major this week.\n\nHope this helps spark a great conversation!\n— FindYourMajor.org`;
+  }
+
+  function handleSendToParent() {
+    const text = generateParentText();
+    if (parentEmail.trim() && parentEmail.includes("@")) {
+      const mailto = `mailto:${encodeURIComponent(parentEmail)}?subject=${encodeURIComponent("Your student's college major results from FindYourMajor.org")}&body=${encodeURIComponent(text)}`;
+      window.open(mailto);
+      setParentSent(true);
+      showToast("📧 Email app opened — just hit Send!");
+    } else {
+      navigator.clipboard.writeText(text)
+        .then(() => { setParentSent(true); showToast("📋 Copied! Paste it into any message or email."); })
+        .catch(() => showToast("Could not copy. Please try again."));
+    }
   }
 
   async function submitAnswers() {
@@ -950,6 +978,114 @@ export default function Quiz() {
             </div>
           );
         })}
+
+        {/* ── Send to Parent ───────────────────────────────────────────── */}
+        <div className="fu" style={{ marginTop: 20, background: WHITE, borderRadius: mobile ? 16 : 18, border: `2px solid ${AMBER}`, boxShadow: "0 2px 16px rgba(245,166,35,.12)", overflow: "hidden" }}>
+          <div style={{ background: "linear-gradient(135deg,#78350F,#92400E)", padding: mobile ? "18px 20px" : "22px 28px", color: WHITE, display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{ fontSize: 32, flexShrink: 0 }}>👨‍👩‍👧</span>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.75, marginBottom: 4 }}>For Parents</div>
+              <h3 style={{ fontSize: mobile ? 18 : 21, fontWeight: 800, letterSpacing: "-.3px", lineHeight: 1.2, margin: 0 }}>Send these results to a parent</h3>
+            </div>
+          </div>
+          <div style={{ padding: mobile ? "16px" : "20px 24px" }}>
+            {!parentSent ? (
+              <div>
+                <p style={{ fontSize: mobile ? 13 : 14, color: SLATE, lineHeight: 1.6, marginBottom: 14 }}>
+                  Share a full summary with a parent or guardian — includes major descriptions, salary ranges, and career paths in a ready-to-read format.
+                </p>
+                {!showParentForm ? (
+                  <button onClick={() => setShowParentForm(true)}
+                    style={{ background: "#92400E", color: WHITE, border: "none", padding: mobile ? "14px 0" : "12px 28px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                    📧 Send to a Parent
+                  </button>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: NAVY, display: "block", marginBottom: 5 }}>Your first name (optional)</label>
+                      <input value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Jordan"
+                        style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "2px solid #E2E8F0", fontSize: 15, fontFamily: "inherit", outline: "none", color: NAVY }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: NAVY, display: "block", marginBottom: 5 }}>Parent's email address</label>
+                      <input type="email" value={parentEmail} onChange={e => setParentEmail(e.target.value)} placeholder="parent@email.com"
+                        style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "2px solid #E2E8F0", fontSize: 15, fontFamily: "inherit", outline: "none", color: NAVY }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      <button onClick={handleSendToParent}
+                        style={{ flex: 1, background: "#92400E", color: WHITE, border: "none", padding: "13px 12px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: 140 }}>
+                        📧 Open Email App
+                      </button>
+                      <button onClick={() => { navigator.clipboard.writeText(generateParentText()).then(() => { setParentSent(true); showToast("📋 Copied! Paste into any message."); }).catch(() => showToast("Could not copy.")); }}
+                        style={{ flex: 1, background: OFFWHT, color: NAVY, border: "2px solid #E2E8F0", padding: "13px 12px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: 140 }}>
+                        📋 Copy to Clipboard
+                      </button>
+                    </div>
+                    <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.5 }}>
+                      "Open Email App" opens your default mail app with the full report pre-written. We never store email addresses.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 0" }}>
+                <span style={{ fontSize: 32 }}>✅</span>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: NAVY, marginBottom: 3 }}>Report ready to send!</div>
+                  <div style={{ fontSize: 13, color: SLATE }}>Your parent will get a full summary of your top major matches, salary data, and career paths.</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Parent Report Upsell ($9.99) ──────────────────────────────────── */}
+        <div className="fu" style={{ marginTop: 16, background: `linear-gradient(135deg,${NAVY} 0%,#1a3a6e 100%)`, borderRadius: mobile ? 16 : 18, overflow: "hidden", position: "relative" }}>
+          <div style={{ position: "absolute", top: 16, right: 16, background: AMBER, color: NAVY, fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, zIndex: 1 }}>Launch Price</div>
+          <div style={{ padding: mobile ? "24px 20px 28px" : "28px 32px 32px", color: WHITE }}>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: AMBER, marginBottom: 10 }}>Parent Report</div>
+            <h3 style={{ fontSize: mobile ? 21 : 26, fontWeight: 900, letterSpacing: "-.5px", marginBottom: 10, lineHeight: 1.15 }}>
+              Get the full deep-dive report<br />
+              <span style={{ color: AMBER }}>$9.99</span>
+              <span style={{ fontSize: mobile ? 13 : 15, fontWeight: 500, color: "rgba(255,255,255,.45)", textDecoration: "line-through", marginLeft: 10 }}>$19.99</span>
+            </h3>
+            <p style={{ fontSize: mobile ? 13 : 15, color: "rgba(255,255,255,.72)", lineHeight: 1.65, marginBottom: 20, maxWidth: 500 }}>
+              A polished PDF report for parents and students to review together. Goes far beyond the free results — built for the college decision conversation.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
+              {[
+                ["📊", "Extended major analysis", "Deep dive on all 5 matches, not just snippets"],
+                ["🏫", "Recommended schools", "Top colleges by budget, location & specialty"],
+                ["📅", "4-year course path", "What your student actually studies each year"],
+                ["💰", "Salary deep-dive", "Entry-level to senior pay, by city & industry"],
+                ["🗣️", "Parent conversation guide", "Questions to ask, topics to explore together"],
+                ["🎯", "90-day action plan", "Concrete next steps to confirm the right fit"],
+              ].map(([icon, title, desc]) => (
+                <div key={title} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "10px 12px" }}>
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: WHITE, marginBottom: 2 }}>{title}</div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", lineHeight: 1.4 }}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <button
+                onClick={() => {
+                  Analytics.affiliateClick("parent_report");
+                  // TODO: Replace with your Stripe payment link from dashboard.stripe.com/payment-links
+                  alert("Stripe not connected yet. Replace this with your real Stripe payment link in Quiz.jsx.");
+                }}
+                style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
+                Get the Full Report — $9.99 →
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,.3)", marginTop: 14, lineHeight: 1.5 }}>
+              One-time payment · Instant PDF download · 30-day money-back guarantee · Secure checkout via Stripe
+            </p>
+          </div>
+        </div>
 
         {/* ── Discover More About Yourself (affiliate) ── */}
         <div className="fu" style={{ marginTop: 28, background: WHITE, borderRadius: mobile ? 16 : 18, border: "1px solid #E8EDF5", boxShadow: "0 2px 12px rgba(15,31,61,.07)", overflow: "hidden" }}>
