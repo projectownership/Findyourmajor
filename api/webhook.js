@@ -14,7 +14,10 @@
 import Stripe from "stripe";
 
 export const config = {
-  api: { bodyParser: false }, // Required for Stripe webhook signature verification
+  api: {
+    bodyParser: false,
+    externalResolver: true,
+  },
 };
 
 async function getRawBody(req) {
@@ -61,7 +64,7 @@ export default async function handler(req, res) {
   try {
     const customerEmail = session.customer_details?.email;
     const customerName  = session.customer_details?.name || "there";
-    const sessionId     = session.metadata?.sessionId;
+    const sessionId     = session.client_reference_id || session.metadata?.sessionId;
 
     if (!customerEmail) {
       console.error("No customer email in session");
@@ -303,7 +306,7 @@ async function sendEmail({ customerEmail, firstName, html }) {
       "Authorization": `Bearer ${resendKey}`,
     },
     body: JSON.stringify({
-      from: "FindYourMajor.org <reports@findyourmajor.org>",
+      from: process.env.RESEND_FROM || "FindYourMajor.org <onboarding@resend.dev>",
       to: [customerEmail],
       subject: `Your FindYourMajor Parent Report is ready, ${firstName}!`,
       html,
