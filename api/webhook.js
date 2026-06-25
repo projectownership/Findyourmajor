@@ -1,29 +1,14 @@
 // api/webhook.js
-// Stripe calls this endpoint automatically whenever a payment is completed.
-// We verify the webhook signature (security), look up the student's answers,
-// generate a personalized report with Claude AI, and email it via Resend.
-//
-// SETUP REQUIRED:
-// 1. Set STRIPE_WEBHOOK_SECRET in Vercel env vars (get from Stripe Dashboard →
-//    Developers → Webhooks → your endpoint → Signing secret)
-// 2. Set STRIPE_SECRET_KEY in Vercel env vars (Stripe Dashboard → API keys)
-// 3. Set RESEND_API_KEY in Vercel env vars
-// 4. Set ANTHROPIC_API_KEY in Vercel env vars (already done)
-// 5. Enable Vercel KV storage in your Vercel project (Storage tab)
-
-import Stripe from "stripe";
+// Receives Stripe payment notifications and emails the Parent Report.
 
 export const config = {
-  api: {
-    bodyParser: false,
-    externalResolver: true,
-  },
+  api: { bodyParser: false },
 };
 
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("data", (c) => chunks.push(c));
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
@@ -34,138 +19,155 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const stripeSecret = process.env.STRIPE_SECRET_KEY;
+  const stripeSecret  = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const anthropicKey  = process.env.ANTHROPIC_API_KEY;
+  const resendKey     = process.env.RESEND_API_KEY;
+  const kvUrl         = process.env.KV_REST_API_URL;
+  const kvToken       = process.env.KV_REST_API_TOKEN;
+
+  // Log env var presence for debugging
+  console.log("ENV CHECK:", {
+    hasStripeSecret:  !!stripeSecret,
+    hasWebhookSecret: !!webhookSecret,
+    hasAnthropic:     !!anthropicKey,
+    hasResend:        !!resendKey,
+    hasKvUrl:         !!kvUrl,
+    hasKvToken:       !!kvToken,
+  });
 
   if (!stripeSecret || !webhookSecret) {
-    console.error("Missing Stripe environment variables");
-    return res.status(500).json({ error: "Server configuration error" });
+    console.error("Missing Stripe env vars");
+    return res.status(500).json({ error: "Server config error" });
   }
 
-  const stripe = new Stripe(stripeSecret, { apiVersion: "2023-10-16" });
+  // Dynamically import Stripe to avoid module issues
+  const { default: Stripe } = await import("stripe");
+  const stripe = new Stripe(stripeSecret);
 
+  // Verify Stripe signature
   let event;
   try {
-    const rawBody = await getRawBody(req);
-    const signature = req.headers["stripe-signature"];
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    const rawBody  = await getRawBody(req);
+    const sig      = req.headers["stripe-signature"];
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
-    console.error("Webhook signature verification failed:", err.message);
+    console.error("Webhook signature error:", err.message);
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
 
-  // Only process completed checkout sessions
+  console.log("Webhook event type:", event.type);
+
   if (event.type !== "checkout.session.completed") {
     return res.status(200).json({ received: true });
   }
 
-  const session = event.data.object;
+  const session       = event.data.object;
+  const customerEmail = session.customer_details?.email;
+  const customerName  = session.customer_details?.name || "there";
+  const sessionId     = session.client_reference_id || session.metadata?.sessionId;
 
-  try {
-    const customerEmail = session.customer_details?.email;
-    const customerName  = session.customer_details?.name || "there";
-    const sessionId     = session.client_reference_id || session.metadata?.sessionId;
+  console.log("Payment details:", { customerEmail, customerName, sessionId });
 
-    if (!customerEmail) {
-      console.error("No customer email in session");
-      return res.status(200).json({ received: true });
-    }
-
-    // Retrieve the student's quiz answers from Upstash Redis
-    let quizData = null;
-    if (sessionId && sessionId !== "no-kv") {
-      const url   = process.env.KV_REST_API_URL;
-      const token = process.env.KV_REST_API_TOKEN;
-      if (url && token) {
-        const kvRes = await fetch(`${url}/get/session:${sessionId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (kvRes.ok) {
-          const kvData = await kvRes.json();
-          if (kvData.result) {
-            try { quizData = JSON.parse(kvData.result); } catch {}
-          }
-        }
-      }
-    }
-
-    // Generate the report and send the email
-    await generateAndSendReport({ customerEmail, customerName, quizData });
-
-    // Clean up the stored answers
-    if (sessionId && sessionId !== "no-kv") {
-      const url   = process.env.KV_REST_API_URL;
-      const token = process.env.KV_REST_API_TOKEN;
-      if (url && token) {
-        await fetch(`${url}/del/session:${sessionId}`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => {});
-      }
-    }
-
-    return res.status(200).json({ received: true, sent: true });
-  } catch (err) {
-    console.error("Webhook processing error:", err);
-    // Return 200 so Stripe doesn't retry — we'll handle errors via logs
-    return res.status(200).json({ received: true, error: err.message });
+  if (!customerEmail) {
+    console.error("No customer email found");
+    return res.status(200).json({ received: true });
   }
+
+  // Try to retrieve quiz answers from Upstash
+  let quizData = null;
+  if (sessionId && sessionId !== "no-kv" && kvUrl && kvToken) {
+    try {
+      const kvRes = await fetch(`${kvUrl}/get/session:${sessionId}`, {
+        headers: { Authorization: `Bearer ${kvToken}` },
+      });
+      const kvJson = await kvRes.json();
+      if (kvJson.result) {
+        quizData = JSON.parse(kvJson.result);
+        console.log("Quiz data retrieved, majors:", quizData?.results?.length);
+      }
+    } catch (err) {
+      console.warn("KV lookup failed:", err.message);
+    }
+  }
+
+  // Generate report with Claude
+  let reportContent = "";
+  try {
+    reportContent = await generateReport(quizData, anthropicKey);
+    console.log("Report generated, length:", reportContent.length);
+  } catch (err) {
+    console.error("Report generation failed:", err.message);
+    reportContent = buildFallbackReport(quizData);
+  }
+
+  // Send email via Resend
+  try {
+    const firstName = customerName.split(" ")[0];
+    const html      = buildEmail(firstName, reportContent, quizData);
+    const fromAddr  = process.env.RESEND_FROM || "onboarding@resend.dev";
+
+    const emailRes = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendKey}`,
+      },
+      body: JSON.stringify({
+        from:    fromAddr,
+        to:      [customerEmail],
+        subject: `Your Find Your Major Parent Report is ready!`,
+        html,
+      }),
+    });
+
+    const emailData = await emailRes.json();
+    console.log("Email send result:", emailData);
+
+    if (!emailRes.ok) {
+      console.error("Resend error:", emailData);
+    }
+  } catch (err) {
+    console.error("Email send failed:", err.message);
+  }
+
+  // Clean up KV
+  if (sessionId && sessionId !== "no-kv" && kvUrl && kvToken) {
+    fetch(`${kvUrl}/del/session:${sessionId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${kvToken}` },
+    }).catch(() => {});
+  }
+
+  return res.status(200).json({ received: true });
 }
 
 // ─── Report generation ────────────────────────────────────────────────────────
 
-async function generateAndSendReport({ customerEmail, customerName, quizData }) {
-  const firstName = customerName.split(" ")[0];
+async function generateReport(quizData, apiKey) {
+  if (!apiKey) throw new Error("No Anthropic API key");
 
-  // Generate report content with Claude AI
-  const reportContent = await generateReportContent(quizData);
-
-  // Build the HTML email
-  const html = buildEmailHTML(firstName, reportContent, quizData);
-
-  // Send via Resend
-  await sendEmail({ customerEmail, firstName, html });
-}
-
-async function generateReportContent(quizData) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("Missing ANTHROPIC_API_KEY");
-
-  // Build context from quiz answers and AI results
-  let context = "";
-  if (quizData?.results) {
-    const results = quizData.results;
-    context = `The student's top 5 AI-recommended majors are:\n${results.map(r =>
-      `${r.rank}. ${r.name} (${r.fitScore}% fit) — ${r.why}\nCareers: ${r.careers?.join(", ")}\nSalary: ${r.salaryRange}`
-    ).join("\n\n")}`;
+  let context = "No quiz data available.";
+  if (quizData?.results?.length) {
+    context = `Top 5 major recommendations:\n` + quizData.results.map(r =>
+      `${r.rank}. ${r.name} (${r.fitScore}% fit) — ${r.why || ""}\nSalary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\nCareers: ${(r.careers || []).join(", ")}`
+    ).join("\n\n");
   }
 
-  if (quizData?.answers) {
-    const answers = quizData.answers;
-    context += `\n\nThe student's quiz answers:\n${Object.entries(answers).map(([id, vals]) =>
-      `${id}: ${Array.isArray(vals) ? vals.join(", ") : vals}`
-    ).join("\n")}`;
-  }
+  const prompt = `You are an expert college major advisor writing a personalized Parent Report.
 
-  const prompt = `You are an expert college major advisor writing a personalized Parent Report for a student who just paid $9.99 for a detailed analysis of their college major recommendations.
+Student's AI-recommended majors:
+${context}
 
-${context || "No quiz data available — provide general guidance."}
+Write a warm, professional report with these sections:
+1. PERSONAL SUMMARY: 2-3 sentences about what this student's profile reveals.
+2. TOP MAJOR DEEP-DIVE: For the #1 major, what daily life looks like, who thrives in it, one surprising fact.
+3. WILDCARD SPOTLIGHT: If there's a wildcard major, why it makes sense for this student.
+4. SCHOOLS TO RESEARCH: 2-3 specific programs for the top major.
+5. CONVERSATION STARTERS: 3 specific questions for parent and student to discuss.
+6. THIS WEEK'S ACTION: One free, specific action to explore the top major.
 
-Write a warm, professional, detailed report covering:
-
-1. SUMMARY: A 2-3 sentence personal introduction acknowledging what the student's profile reveals about them.
-
-2. TOP MAJOR DEEP-DIVE: For the #1 recommended major, write 3-4 sentences going deeper than the quiz result — what daily life in this field actually looks like, what kind of person thrives in it, and one thing most students don't know about it.
-
-3. WILDCARD SPOTLIGHT: For any wildcard major in the results, write 2-3 sentences explaining why this surprising choice actually makes sense for this specific student.
-
-4. SCHOOLS TO RESEARCH: For the top 2 majors, suggest 2-3 specific college programs known for quality in that field (budget-friendly options preferred).
-
-5. PARENT TALKING POINTS: 3 specific, thoughtful conversation starters tailored to what this student's answers reveal about their personality and concerns.
-
-6. THIS WEEK'S ACTION: One very specific, free action the student can take in the next 7 days to explore their top major.
-
-Write in a warm, encouraging tone. Address the parent directly. Be specific — reference the actual major names and quiz answers. Keep it under 600 words total.`;
+Keep it under 500 words. Warm, encouraging tone. Be specific — reference the actual major names.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -176,149 +178,79 @@ Write in a warm, encouraging tone. Address the parent directly. Be specific — 
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 1200,
+      max_tokens: 1000,
       messages: [{ role: "user", content: prompt }],
     }),
   });
 
-  if (!res.ok) throw new Error(`Anthropic API error: ${res.status}`);
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Anthropic API ${res.status}: ${err.slice(0, 200)}`);
+  }
+
   const data = await res.json();
   return (data.content || []).map(b => b.text || "").join("");
 }
 
-function buildEmailHTML(firstName, reportContent, quizData) {
-  const results = quizData?.results || [];
+function buildFallbackReport(quizData) {
+  const top = quizData?.results?.[0]?.name || "your top recommended major";
+  return `Thank you for your purchase! Based on your student's quiz answers, their #1 recommended major is ${top}. We recommend exploring this field through YouTube videos, free intro courses on Coursera, and speaking with professionals in the field. Please retake the quiz at findyourmajor.org anytime to update recommendations as your student's interests evolve.`;
+}
+
+// ─── Email HTML builder ───────────────────────────────────────────────────────
+
+function buildEmail(firstName, reportContent, quizData) {
+  const results  = quizData?.results || [];
+  const NAVY     = "#0F1F3D";
+  const AMBER    = "#F5A623";
 
   const majorCards = results.map(m => `
-    <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:16px;background:#ffffff;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span style="font-size:18px;font-weight:800;color:#0F1F3D;">#${m.rank} — ${m.name}</span>
-        <span style="background:${m.fitScore>=85?"#f0fdf4":m.fitScore>=70?"#fef3dc":"#f1f5f9"};color:${m.fitScore>=85?"#166534":m.fitScore>=70?"#d97706":"#6b7a99"};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;">${m.fitScore}% fit</span>
+    <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;margin-bottom:14px;background:#ffffff;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <strong style="font-size:17px;color:${NAVY};">#${m.rank} — ${m.name}</strong>
+        <span style="background:#fef3dc;color:#d97706;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;">${m.fitScore}% fit</span>
       </div>
       ${m.isWildcard ? '<div style="background:#ede9fe;color:#7c3aed;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px;">✨ WILDCARD</div>' : ""}
-      <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 10px;">${m.why}</p>
-      <div style="background:#f8f9fc;border-radius:8px;padding:10px 14px;">
-        <span style="font-size:12px;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:0.5px;">Salary Range</span>
-        <span style="font-size:14px;font-weight:600;color:#0F1F3D;margin-left:8px;">${m.salaryRange}</span>
-        <span style="font-size:12px;color:#6b7a99;margin-left:16px;">Outlook: ${m.jobOutlook}</span>
+      <p style="color:#475569;font-size:14px;line-height:1.6;margin:0 0 10px;">${m.why || ""}</p>
+      <div style="font-size:13px;color:#64748b;">
+        💰 ${m.salaryRange || "Varies"} &nbsp;|&nbsp; 📈 ${m.jobOutlook || "Stable"}
       </div>
-      <div style="margin-top:10px;">
-        <span style="font-size:12px;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:0.5px;">Careers</span>
-        <div style="margin-top:6px;">${(m.careers||[]).map(c => `<span style="background:#0F1F3D15;color:#0F1F3D;font-size:12px;font-weight:600;padding:3px 8px;border-radius:4px;margin-right:6px;margin-bottom:4px;display:inline-block;">${c}</span>`).join("")}</div>
-      </div>
-      ${m.firstStep ? `<div style="background:#fef3dc;border:1px solid #fde6b8;border-radius:8px;padding:10px 12px;margin-top:12px;"><span style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;">First Step This Week</span><p style="margin:4px 0 0;font-size:13px;color:#78350f;line-height:1.5;">${m.firstStep}</p></div>` : ""}
+      ${m.firstStep ? `<div style="background:#fef3dc;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px;color:#78350f;"><strong>👟 First step this week:</strong> ${m.firstStep}</div>` : ""}
     </div>
   `).join("");
 
-  // Convert the AI report text into HTML paragraphs
-  const reportHTML = reportContent
-    .split("\n\n")
-    .filter(p => p.trim())
-    .map(para => {
-      if (para.match(/^\d+\./)) {
-        return `<h3 style="font-size:16px;font-weight:800;color:#0F1F3D;margin:20px 0 8px;">${para}</h3>`;
-      }
-      return `<p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 14px;">${para}</p>`;
-    })
+  const reportHtml = reportContent
+    .split("\n\n").filter(p => p.trim())
+    .map(para => `<p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 14px;">${para.replace(/\n/g, "<br>")}</p>`)
     .join("");
 
-  return `
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f8f9fc;font-family:Arial,sans-serif;">
-
-  <!-- Header -->
-  <div style="background:#0F1F3D;padding:24px 32px;">
-    <div style="max-width:600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:20px;font-weight:900;color:#ffffff;">Find Your Major<span style="color:#F5A623;">.</span></span>
-      <span style="font-size:12px;color:rgba(255,255,255,0.5);">Parent Report</span>
-    </div>
+  <div style="background:${NAVY};padding:20px 32px;">
+    <span style="font-size:20px;font-weight:900;color:#fff;">Find Your Major<span style="color:${AMBER}">.</span></span>
+    <span style="font-size:12px;color:rgba(255,255,255,0.5);margin-left:12px;">Parent Report</span>
   </div>
-
-  <!-- Body -->
   <div style="max-width:600px;margin:0 auto;padding:32px 16px 64px;">
-
-    <!-- Welcome banner -->
-    <div style="background:linear-gradient(135deg,#0F1F3D,#1a3a6e);border-radius:16px;padding:32px;color:#ffffff;margin-bottom:24px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#F5A623;margin-bottom:12px;">Parent Report — Ready</div>
-      <h1 style="font-size:26px;font-weight:900;margin:0 0 10px;letter-spacing:-0.5px;">Your student's major matches are here</h1>
-      <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.6;margin:0;">Hi ${firstName}, here is the full personalized report for your student — including AI analysis, recommended schools, salary data, and a 90-day action plan.</p>
+    <div style="background:linear-gradient(135deg,${NAVY},#1a3a6e);border-radius:16px;padding:32px;color:#fff;margin-bottom:24px;text-align:center;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${AMBER};margin-bottom:10px;">Parent Report — Ready</div>
+      <h1 style="font-size:24px;font-weight:900;margin:0 0 10px;">Hi ${firstName}! Your student's report is here.</h1>
+      <p style="color:rgba(255,255,255,0.75);font-size:15px;margin:0;">Here are their personalized major recommendations with full analysis.</p>
     </div>
-
-    <!-- AI Personalized Analysis -->
-    <div style="background:#ffffff;border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid #e8edf5;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#F5A623;margin-bottom:16px;">AI-Personalized Analysis</div>
-      ${reportHTML}
+    <div style="background:#fff;border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid #e8edf5;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${AMBER};margin-bottom:16px;">AI-Personalized Analysis</div>
+      ${reportHtml || "<p style='color:#6b7280;'>Your personalized analysis is included below with your major matches.</p>"}
     </div>
-
-    <!-- Major Cards -->
-    <div style="background:#ffffff;border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid #e8edf5;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6b7a99;margin-bottom:20px;">All 5 Find Your Majores</div>
-      ${majorCards || '<p style="color:#6b7a99;">Take the quiz at findyourmajor.org to see personalized major recommendations.</p>'}
+    <div style="background:#fff;border-radius:16px;padding:28px;margin-bottom:20px;border:1px solid #e8edf5;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#6b7a99;margin-bottom:20px;">All 5 Major Matches</div>
+      ${majorCards || "<p style='color:#6b7280;'>Visit findyourmajor.org to see your full results.</p>"}
     </div>
-
-    <!-- Salary Research Tip -->
-    <div style="background:#fef3dc;border:1px solid #fde6b8;border-radius:12px;padding:20px;margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:800;color:#92400e;margin-bottom:6px;">💰 Salary Research Tip</div>
-      <p style="font-size:13px;color:#78350f;line-height:1.6;margin:0;">Visit <strong>bls.gov/ooh</strong> (Bureau of Labor Statistics) for free, government-verified salary data and job growth projections for every career listed above. Filter by state to see local ranges.</p>
-    </div>
-
-    <!-- Conversation starters -->
-    <div style="background:#eef2ff;border-radius:12px;padding:20px;margin-bottom:20px;">
-      <div style="font-size:13px;font-weight:800;color:#4338ca;margin-bottom:12px;">🗣️ Starting the conversation</div>
-      <p style="font-size:13px;color:#3730a3;line-height:1.6;margin:0 0 8px;"><strong>Try asking:</strong> "When you saw your #1 match, what was your gut reaction?"</p>
-      <p style="font-size:13px;color:#3730a3;line-height:1.6;margin:0 0 8px;">"Is there anything on the list that immediately felt like 'that's not me'?"</p>
-      <p style="font-size:13px;color:#3730a3;line-height:1.6;margin:0;">"What would you want to try before committing to a major?"</p>
-    </div>
-
-    <!-- CTA -->
     <div style="text-align:center;margin-bottom:24px;">
-      <a href="https://findyourmajor.org" style="background:#F5A623;color:#0F1F3D;padding:14px 36px;border-radius:50px;font-size:15px;font-weight:800;text-decoration:none;display:inline-block;">
-        Retake the Quiz →
-      </a>
-      <p style="font-size:12px;color:#94a3b8;margin-top:12px;">Share findyourmajor.org with other parents — it's completely free for students.</p>
+      <a href="https://findyourmajor.org" style="background:${AMBER};color:${NAVY};padding:14px 36px;border-radius:50px;font-size:15px;font-weight:800;text-decoration:none;display:inline-block;">Retake the Quiz →</a>
     </div>
-
-    <!-- Footer -->
-    <div style="border-top:1px solid #e2e8f0;padding-top:20px;text-align:center;">
-      <p style="font-size:12px;color:#94a3b8;line-height:1.6;margin:0;">
-        This report was generated by AI and is for informational and educational purposes only.
-        It is not professional academic or career counselling.<br><br>
-        <a href="https://findyourmajor.org" style="color:#6b7a99;">findyourmajor.org</a> |
-        <a href="https://findyourmajor.org/privacy" style="color:#6b7a99;">Privacy Policy</a>
-      </p>
-    </div>
-
+    <p style="font-size:12px;color:#94a3b8;text-align:center;line-height:1.6;">
+      This report is for informational purposes only and is not professional academic counselling.<br>
+      <a href="https://findyourmajor.org" style="color:#6b7a99;">findyourmajor.org</a>
+    </p>
   </div>
-</body>
-</html>`;
-}
-
-async function sendEmail({ customerEmail, firstName, html }) {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) throw new Error("Missing RESEND_API_KEY");
-
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${resendKey}`,
-    },
-    body: JSON.stringify({
-      from: process.env.RESEND_FROM || "FindYourMajor.org <onboarding@resend.dev>",
-      to: [customerEmail],
-      subject: `Your FindYourMajor Parent Report is ready, ${firstName}!`,
-      html,
-    }),
-  });
-
-  if (!res.ok) {
-    const err = await res.text().catch(() => "");
-    throw new Error(`Resend error ${res.status}: ${err}`);
-  }
-
-  const data = await res.json();
-  console.log("Email sent:", data.id);
-  return data;
+</body></html>`;
 }
