@@ -463,9 +463,9 @@ function VideoSection({ major, videoQueries, mobile }) {
       <div style={{ height: 1, background: "#F1F5F9", margin: "16px 0" }} />
       <button
         onClick={handleToggle}
-        style={{ background: "none", border: "none", color: AMBER, fontWeight: "700", fontSize: mobile ? "14px" : "13px", cursor: "pointer", padding: "4px 0", display: "flex", alignItems: "center", gap: "5px" }}
+        style={{ background: open ? "#1a3a6e" : NAVY, border: "2px solid " + NAVY, color: "white", fontWeight: "800", fontSize: mobile ? "15px" : "14px", cursor: "pointer", padding: "11px 20px", display: "flex", alignItems: "center", gap: "8px", borderRadius: 50, letterSpacing: "-.2px", WebkitTapHighlightColor: "transparent" }}
       >
-        🎬 {open ? "Hide" : "Watch"} videos about {major} {open ? "▲" : "▼"}
+        🎬 {open ? "Hide videos" : "Watch " + major + " videos"} {open ? "▲" : "▼"}
       </button>
       {open && (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
