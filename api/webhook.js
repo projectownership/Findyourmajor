@@ -12,7 +12,6 @@
 // 5. Enable Vercel KV storage in your Vercel project (Storage tab)
 
 import Stripe from "stripe";
-import { kv } from "@vercel/kv";
 
 export const config = {
   api: { bodyParser: false }, // Required for Stripe webhook signature verification
@@ -69,12 +68,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ received: true });
     }
 
-    // Retrieve the student's quiz answers from Vercel KV
+    // Retrieve the student's quiz answers from Upstash Redis
     let quizData = null;
-    if (sessionId) {
-      const stored = await kv.get(`session:${sessionId}`);
-      if (stored) {
-        quizData = typeof stored === "string" ? JSON.parse(stored) : stored;
+    if (sessionId && sessionId !== "no-kv") {
+      const url   = process.env.KV_REST_API_URL;
+      const token = process.env.KV_REST_API_TOKEN;
+      if (url && token) {
+        const kvRes = await fetch(`${url}/get/session:${sessionId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (kvRes.ok) {
+          const kvData = await kvRes.json();
+          if (kvData.result) {
+            try { quizData = JSON.parse(kvData.result); } catch {}
+          }
+        }
       }
     }
 
@@ -82,8 +90,15 @@ export default async function handler(req, res) {
     await generateAndSendReport({ customerEmail, customerName, quizData });
 
     // Clean up the stored answers
-    if (sessionId) {
-      await kv.del(`session:${sessionId}`);
+    if (sessionId && sessionId !== "no-kv") {
+      const url   = process.env.KV_REST_API_URL;
+      const token = process.env.KV_REST_API_TOKEN;
+      if (url && token) {
+        await fetch(`${url}/del/session:${sessionId}`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
     }
 
     return res.status(200).json({ received: true, sent: true });
@@ -157,7 +172,7 @@ Write in a warm, encouraging tone. Address the parent directly. Be specific — 
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-fable-5",
+      model: "claude-sonnet-4-6",
       max_tokens: 1200,
       messages: [{ role: "user", content: prompt }],
     }),
