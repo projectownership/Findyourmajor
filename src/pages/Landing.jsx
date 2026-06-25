@@ -18,7 +18,7 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { num: "6", label: "Quick questions" },
+  { num: "8", label: "Quick questions" },
   { num: "5", label: "AI-matched majors" },
   { num: "40+", label: "Majors in our engine" },
   { num: "Free", label: "Always" },
@@ -69,7 +69,7 @@ export default function Landing() {
             <span style={{ color: AMBER }}>Find the major that's yours.</span>
           </h1>
           <p className="fu2" style={{ fontSize: "clamp(16px,2.5vw,20px)", color: "rgba(255,255,255,.7)", maxWidth: 520, margin: "0 auto 40px", lineHeight: 1.65 }}>
-            Answer 6 honest questions about who you are. Get 5 personalized college major recommendations — including one that might surprise you.
+            Answer 8 honest questions about who you are. Get 5 personalized college major recommendations — including one that might surprise you.
           </p>
           <div className="fu3" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <button onClick={startQuiz} style={{ background: AMBER, color: NAVY, border: "none", padding: "18px 52px", borderRadius: 50, fontSize: 18, fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 32px rgba(245,166,35,.5)", letterSpacing: "-.3px" }}>
@@ -133,7 +133,7 @@ export default function Landing() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
             {[
-              { step: "01", icon: "✏️", title: "Answer 6 questions", desc: "Tell us about your interests, work style, values, and the kind of impact you want to make. Honest answers = better results." },
+              { step: "01", icon: "✏️", title: "Answer 8 questions", desc: "Tell us about your interests, work style, values, and the kind of impact you want to make. Honest answers = better results." },
               { step: "02", icon: "🤖", title: "AI builds your profile", desc: "Claude — Anthropic's AI — reads your full set of answers together and generates recommendations specific to you, not a template." },
               { step: "03", icon: "🎓", title: "Explore your matches", desc: "Get 5 ranked majors with explanations, salary data, career paths, and video resources for each. Including a wildcard pick." },
             ].map(s => (
