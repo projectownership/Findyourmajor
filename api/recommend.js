@@ -89,7 +89,7 @@ Rules:
     // model. Produces deeper, more nuanced personalization than smaller models.
     // To control costs you can set MODEL env var to a cheaper model
     // (e.g. "claude-sonnet-4-6") without changing code.
-    const model = process.env.MODEL || "claude-fable-5";
+    const model = process.env.MODEL || "claude-sonnet-4-6";
 
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
