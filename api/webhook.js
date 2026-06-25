@@ -1,6 +1,8 @@
 // api/webhook.js
 // Receives Stripe payment notifications and emails the Parent Report.
 
+import Stripe from "stripe";
+
 export const config = {
   api: { bodyParser: false },
 };
@@ -41,8 +43,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Server config error" });
   }
 
-  // Dynamically import Stripe to avoid module issues
-  const { default: Stripe } = await import("stripe");
   const stripe = new Stripe(stripeSecret);
 
   // Verify Stripe signature
