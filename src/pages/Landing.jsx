@@ -18,7 +18,7 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { num: "8", label: "Quick questions" },
+  { num: "6", label: "Quick questions" },
   { num: "5", label: "AI-matched majors" },
   { num: "40+", label: "Majors in our engine" },
   { num: "Free", label: "Always" },
@@ -58,7 +58,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ background: `linear-gradient(150deg, #0a1628 0%, ${NAVY} 55%, #0d2557 100%)`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
+      <section style={{ background: `linear-gradient(150deg, rgba(10,22,40,0.93) 0%, rgba(15,31,61,0.90) 55%, rgba(13,37,87,0.92) 100%), url("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 60%, rgba(245,166,35,.08) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(99,102,241,.09) 0%, transparent 50%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div className="fu" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(245,166,35,.12)", border: "1px solid rgba(245,166,35,.3)", color: AMBER, fontWeight: 600, fontSize: 13, padding: "6px 18px", borderRadius: 20, marginBottom: 28 }}>
@@ -69,7 +69,7 @@ export default function Landing() {
             <span style={{ color: AMBER }}>Find the major that's yours.</span>
           </h1>
           <p className="fu2" style={{ fontSize: "clamp(16px,2.5vw,20px)", color: "rgba(255,255,255,.7)", maxWidth: 520, margin: "0 auto 40px", lineHeight: 1.65 }}>
-            Answer 8 honest questions about who you are. Get 5 personalized college major recommendations — including one that might surprise you.
+            Answer 6 honest questions about who you are. Get 5 personalized college major recommendations — including one that might surprise you.
           </p>
           <div className="fu3" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <button onClick={startQuiz} style={{ background: AMBER, color: NAVY, border: "none", padding: "18px 52px", borderRadius: 50, fontSize: 18, fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 32px rgba(245,166,35,.5)", letterSpacing: "-.3px" }}>
@@ -91,6 +91,39 @@ export default function Landing() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
+      {/* Photo grid — diverse students (Unsplash, free license) */}
+      <div style={{ background: "white", padding: "40px 16px 8px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto" }}>
+          <p style={{ textAlign: "center", fontSize: 12, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#6B7A99", marginBottom: 16 }}>
+            Helping students everywhere find their path
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 10 }}>
+            <div style={{ gridColumn: "span 2", borderRadius: 14, overflow: "hidden", height: 260 }}>
+              <img src="https://images.unsplash.com/photo-1758270704524-596810e891b5?auto=format&fit=crop&w=800&q=80"
+                alt="Diverse college students smiling in a lecture hall"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+            </div>
+            <div style={{ borderRadius: 14, overflow: "hidden", height: 260 }}>
+              <img src="https://images.unsplash.com/photo-1758270704025-0e1a1793e1ca?auto=format&fit=crop&w=800&q=80"
+                alt="College students taking notes in class"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 40 }}>
+            <div style={{ borderRadius: 14, overflow: "hidden", height: 200 }}>
+              <img src="https://images.unsplash.com/photo-1758270703878-de80505b6714?auto=format&fit=crop&w=800&q=80"
+                alt="Students raising hands in lecture hall"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} loading="lazy" />
+            </div>
+            <div style={{ gridColumn: "span 2", borderRadius: 14, overflow: "hidden", height: 200 }}>
+              <img src="https://images.unsplash.com/photo-1758270705518-b61b40527e76?auto=format&fit=crop&w=800&q=80"
+                alt="Diverse students collaborating around a laptop"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block" }} loading="lazy" />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <section style={{ padding: "80px 24px", background: OFFWHT }}>
         <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-block", background: AMBER_L, color: "#D97706", fontWeight: 700, fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", padding: "5px 16px", borderRadius: 20, marginBottom: 16 }}>How it works</div>
@@ -100,7 +133,7 @@ export default function Landing() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
             {[
-              { step: "01", icon: "✏️", title: "Answer 8 questions", desc: "Tell us about your interests, work style, values, and the kind of impact you want to make. Honest answers = better results." },
+              { step: "01", icon: "✏️", title: "Answer 6 questions", desc: "Tell us about your interests, work style, values, and the kind of impact you want to make. Honest answers = better results." },
               { step: "02", icon: "🤖", title: "AI builds your profile", desc: "Claude — Anthropic's AI — reads your full set of answers together and generates recommendations specific to you, not a template." },
               { step: "03", icon: "🎓", title: "Explore your matches", desc: "Get 5 ranked majors with explanations, salary data, career paths, and video resources for each. Including a wildcard pick." },
             ].map(s => (
