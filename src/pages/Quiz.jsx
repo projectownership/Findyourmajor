@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"; 
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { NAVY, AMBER, AMBER_L, SLATE, OFFWHT, WHITE, GREEN, INDIGO, PURPLE } from "../brand.js";
 import { Analytics } from "../brand.js";
@@ -445,7 +445,7 @@ function ytUrl(q) {
 }
 
 function shareText(results) {
-  return `My top college major matches:\n\n${results.slice(0, 3).map(r => `${r.rank}. ${r.name} (${r.fitScore}% fit)`).join("\n")}\n\nFind your match at Major.Match!`;
+  return `My top college major matches:\n\n${results.slice(0, 3).map(r => `${r.rank}. ${r.name} (${r.fitScore}% fit)`).join("\n")}\n\nFind your major at findyourmajor.org!`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -540,7 +540,7 @@ export default function Quiz() {
   function shareResults() {
     Analytics.resultsShared();
     const txt = shareText(results);
-    if (navigator.share) { navigator.share({ title: "My Major.Match Results", text: txt }).catch(() => {}); }
+    if (navigator.share) { navigator.share({ title: "My Find Your Major Results", text: txt }).catch(() => {}); }
     else { navigator.clipboard.writeText(txt).then(() => showToast("📋 Copied to clipboard!")).catch(() => showToast("Could not copy.")); }
   }
 
@@ -548,7 +548,7 @@ export default function Quiz() {
     const lines = ["MY FINDYOURMAJOR.ORG RESULTS", "============================", `Date: ${new Date().toLocaleDateString()}`, "", ...results.map(m => `#${m.rank} — ${m.name} (${m.fitScore}% fit)${m.isWildcard ? "  ✨ WILDCARD" : ""}\n${m.why}${m.firstStep ? `\nFirst step this week: ${m.firstStep}` : ""}\nSalary: ${m.salaryRange} | Outlook: ${m.jobOutlook}\nCareers: ${m.careers.join(", ")}\n`)].join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
-    a.download = "major-match-results.txt";
+    a.download = "findyourmajor-results.txt";
     a.click();
     showToast("📄 Downloaded!");
   }
@@ -669,7 +669,7 @@ export default function Quiz() {
         {/* Nav */}
         <div style={{ padding: mobile ? "18px 20px" : "22px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 2 }}>
           <span style={{ fontSize: mobile ? 20 : 22, fontWeight: 900, letterSpacing: "-0.5px" }}>
-            Major<span style={{ color: AMBER }}>.</span>Match
+            Find Your Major<span style={{ color: AMBER }}>.</span>
           </span>
           {saved && (
             <button
@@ -900,7 +900,7 @@ export default function Quiz() {
       {/* Sticky results header */}
       <div style={{ position: "sticky", top: 0, zIndex: 20, background: NAVY, padding: mobile ? "14px 16px" : "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: mobile ? 18 : 20, fontWeight: 900, color: WHITE, letterSpacing: "-.5px" }}>
-          Major<span style={{ color: AMBER }}>.</span>Match
+          Find Your Major<span style={{ color: AMBER }}>.</span>
         </span>
         <button
           onClick={restart}
@@ -1072,10 +1072,24 @@ export default function Quiz() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <button
-                onClick={() => {
+                onClick={async () => {
                   Analytics.affiliateClick("parent_report");
-                  // TODO: Replace with your Stripe payment link from dashboard.stripe.com/payment-links
-                  window.open("https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00", "_blank");
+                  try {
+                    // Save quiz answers so we can personalize the report after payment
+                    const res = await fetch("/api/save-answers", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ answers, results }),
+                    });
+                    const data = await res.json();
+                    const sessionId = data.sessionId || "";
+                    // Redirect to Stripe with session ID in the URL so webhook can find answers
+                    const stripeUrl = `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`;
+                    window.open(stripeUrl, "_blank");
+                  } catch (err) {
+                    console.warn("Could not save answers, redirecting anyway:", err);
+                    window.open("https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00", "_blank");
+                  }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
                 Get the Full Report — $9.99 →
@@ -1141,7 +1155,7 @@ export default function Quiz() {
           {/* FTC disclosure */}
           <div style={{ padding: mobile ? "12px 16px 16px" : "12px 20px 18px", borderTop: "1px solid #F1F5F9" }}>
             <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.5, textAlign: "center" }}>
-              Some links above are affiliate links. If you sign up or purchase through them, Major.Match may earn a small commission at no extra cost to you. We only recommend tools we believe are genuinely helpful.
+              Some links above are affiliate links. If you sign up or purchase through them, FindYourMajor.org may earn a small commission at no extra cost to you. We only recommend tools we believe are genuinely helpful.
             </p>
           </div>
         </div>
