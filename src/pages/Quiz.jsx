@@ -512,10 +512,24 @@ export default function Quiz() {
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "" });
   const [studentName, setStudentName]       = useState("");
+  const [refCode, setRefCode] = useState("");
   const topRef = useRef(null);
 
   const q = QUESTIONS[step];
   const selected = answers[q?.id] || [];
+
+
+  // Capture counselor referral code from URL (?ref=sarahchen)
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref") || sessionStorage.getItem("fym_ref") || "";
+      if (ref) {
+        setRefCode(ref);
+        sessionStorage.setItem("fym_ref", ref); // persist through quiz
+      }
+    } catch {}
+  }, []);
 
   function showToast(msg) {
     setToast({ show: true, msg });
@@ -549,7 +563,7 @@ export default function Quiz() {
       const res = await fetch('/api/save-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, results }),
+        body: JSON.stringify({ answers, results, refCode }),
       });
       const data = await res.json();
       sessionId = data.sessionId || '';
@@ -938,6 +952,14 @@ export default function Quiz() {
           </div>
         </div>
 
+        {/* Counselor referral banner */}
+        {refCode && (
+          <div style={{ background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 18 }}>🎓</span>
+            <span style={{ fontSize: 13, color: "#4338CA", fontWeight: 600 }}>Shared by your counselor · Personalized by Find Your Major AI</span>
+          </div>
+        )}
+
         {/* Major cards */}
         {results.map((m, idx) => {
           const accentColor = m.rank === 1 ? AMBER : m.rank === 2 ? INDIGO : m.rank === 3 ? GREEN : "#94A3B8";
@@ -992,7 +1014,7 @@ export default function Quiz() {
           <div style={{ padding: mobile ? "24px 20px 28px" : "28px 32px 32px", color: WHITE }}>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: AMBER, marginBottom: 10 }}>Parent Report</div>
             <h3 style={{ fontSize: mobile ? 21 : 26, fontWeight: 900, letterSpacing: "-.5px", marginBottom: 10, lineHeight: 1.15 }}>
-              Get the full deep-dive report<br />
+              Get the full personalized Parent Report<br />
               <span style={{ color: AMBER }}>$9.99</span>
               <span style={{ fontSize: mobile ? 13 : 15, fontWeight: 500, color: "rgba(255,255,255,.45)", textDecoration: "line-through", marginLeft: 10 }}>$19.99</span>
             </h3>
@@ -1001,12 +1023,12 @@ export default function Quiz() {
             </p>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
               {[
-                ["\U0001f3af", "Personal profile summary", "What your student's results reveal about who they are"],
-                ["\U0001f50d", "Deep dive: your #1 major", "Daily life, who thrives, and surprising facts"],
-                ["\U0001f3eb", "Recommended schools", "Budget-friendly, mid-range & top programs"],
-                ["\U0001f4b0", "Salary deep-dive", "Entry-level to senior pay for top 3 majors"],
-                ["\U0001f4c5", "4-year course path", "Typical courses year-by-year for the top major"],
-                ["\U0001f5e3", "Conversation guide + 90-day plan", "Questions to ask and concrete next steps"],
+                ["🎯", "Personal profile summary", "What your student's results reveal about who they are"],
+                ["🔍", "Deep dive: your #1 major", "Daily life, who thrives, and surprising facts"],
+                ["🏫", "Recommended schools", "Budget-friendly, mid-range & top programs"],
+                ["💰", "Salary deep-dive", "Entry-level to senior pay for top 3 majors"],
+                ["📅", "4-year course path", "Typical courses year-by-year for the top major"],
+                ["🗣️", "Conversation guide + 90-day plan", "Questions to ask and concrete next steps"],
               ].map(([icon, title, desc]) => (
                 <div key={title} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "10px 12px" }}>
                   <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
@@ -1026,7 +1048,7 @@ export default function Quiz() {
                     const res = await fetch("/api/save-answers", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ answers, results }),
+                      body: JSON.stringify({ answers, results, refCode }),
                     });
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
