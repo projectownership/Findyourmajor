@@ -13,7 +13,7 @@ const FEATURES = [
   { icon: "🎯", title: "5 focused matches", desc: "You get exactly 5 majors, including at least one wildcard you probably haven't considered. Enough to explore, not so many it's overwhelming." },
   { icon: "🌍", title: "Works worldwide", desc: "Whether you're in the US, UK, Nigeria, India, or anywhere else — the majors, careers, and insights apply globally." },
   { icon: "🎬", title: "Video resources", desc: "Each recommended major comes with curated YouTube searches so you can hear from real students and professionals in that field." },
-  { icon: "💾", title: "Save & share", desc: "Download your results as a PDF, copy a share link, or save them to your device to revisit later — or show your parents." },
+  { icon: "💾", title: "Save & share", desc: "Save your results to your device, copy a share link, or send them directly to a parent — instantly." },
   { icon: "🔒", title: "Private by design", desc: "No account required. No email. No tracking. Your answers stay on your device. We built this for students, not for data harvesting." },
 ];
 

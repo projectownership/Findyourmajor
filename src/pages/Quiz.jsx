@@ -453,7 +453,7 @@ function shareText(results, sessionId) {
   const reportUrl = sessionId
     ? `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`
     : 'https://findyourmajor.org';
-  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized 13-page Parent Report for $9.99?\nThis link is tied to MY specific quiz answers so the report will be personalized just for me:\n${reportUrl}\n\n(Link expires in 24 hours)`;
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized Parent Report emailed to you for $9.99?\nThis link is tied to MY specific quiz answers so the report will be personalized just for me:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
