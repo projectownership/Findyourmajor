@@ -58,7 +58,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ background: `linear-gradient(150deg, rgba(10,22,40,0.65) 0%, rgba(15,31,61,0.60) 55%, rgba(13,37,87,0.65) 100%), url("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
+      <section style={{ background: `radial-gradient(ellipse at center, rgba(10,22,40,0.82) 0%, rgba(15,31,61,0.72) 50%, rgba(13,37,87,0.55) 100%), url("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 60%, rgba(245,166,35,.08) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(99,102,241,.09) 0%, transparent 50%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div className="fu" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(245,166,35,.12)", border: "1px solid rgba(245,166,35,.3)", color: AMBER, fontWeight: 600, fontSize: 13, padding: "6px 18px", borderRadius: 20, marginBottom: 28 }}>
@@ -68,14 +68,14 @@ export default function Landing() {
             Stop guessing.<br />
             <span style={{ color: AMBER }}>Find the major that's yours.</span>
           </h1>
-          <p className="fu2" style={{ fontSize: "clamp(16px,2.5vw,20px)", color: "rgba(255,255,255,.7)", maxWidth: 520, margin: "0 auto 40px", lineHeight: 1.65 }}>
+          <p className="fu2" style={{ fontSize: "clamp(16px,2.5vw,20px)", color: "rgba(255,255,255,.92)", maxWidth: 520, margin: "0 auto 40px", lineHeight: 1.65 }}>
             Answer 8 honest questions about who you are. Get 5 personalized college major recommendations — including one that might surprise you.
           </p>
           <div className="fu3" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
             <button onClick={startQuiz} style={{ background: AMBER, color: NAVY, border: "none", padding: "18px 52px", borderRadius: 50, fontSize: 18, fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 32px rgba(245,166,35,.5)", letterSpacing: "-.3px" }}>
               Start the Quiz — It's Free →
             </button>
-            <span style={{ color: "rgba(255,255,255,.4)", fontSize: 13 }}>Takes about 3 minutes · No email required</span>
+            <span style={{ color: "rgba(255,255,255,.75)", fontSize: 13 }}>Takes about 3 minutes · No email required</span>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export default function Landing() {
           {STATS.map((s, i) => (
             <div key={s.label} style={{ flex: "1", maxWidth: 160, textAlign: "center", padding: "20px 12px", borderRight: i < STATS.length - 1 ? "1px solid rgba(255,255,255,.08)" : "none" }}>
               <div style={{ fontSize: "clamp(22px,4vw,28px)", fontWeight: 900, color: AMBER, letterSpacing: "-.5px" }}>{s.num}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,.42)", marginTop: 4, letterSpacing: ".7px", textTransform: "uppercase" }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,.75)", marginTop: 4, letterSpacing: ".7px", textTransform: "uppercase" }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -176,9 +176,9 @@ export default function Landing() {
             {TESTIMONIALS.map((t, i) => (
               <div key={i} style={{ background: "rgba(255,255,255,.07)", border: "1px solid rgba(255,255,255,.12)", borderRadius: 16, padding: "24px 22px", textAlign: "left" }}>
                 <div style={{ fontSize: 28, color: AMBER, marginBottom: 12, lineHeight: 1 }}>"</div>
-                <p style={{ fontSize: 15, lineHeight: 1.65, color: "rgba(255,255,255,.85)", marginBottom: 18 }}>{t.text}</p>
+                <p style={{ fontSize: 15, lineHeight: 1.65, color: "rgba(255,255,255,.95)", marginBottom: 18 }}>{t.text}</p>
                 <div style={{ fontWeight: 700, fontSize: 14, color: WHITE }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,.45)", marginTop: 2 }}>{t.detail}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,.72)", marginTop: 2 }}>{t.detail}</div>
               </div>
             ))}
           </div>
@@ -201,13 +201,13 @@ export default function Landing() {
       </section>
 
       {/* ── FOOTER ── */}
-      <footer style={{ background: NAVY, color: "rgba(255,255,255,.5)", padding: "28px 24px", textAlign: "center", fontSize: 13 }}>
+      <footer style={{ background: NAVY, color: "rgba(255,255,255,.70)", padding: "28px 24px", textAlign: "center", fontSize: 13 }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "8px 24px" }}>
           <span style={{ color: WHITE, fontWeight: 800, fontSize: 15 }}>Find Your Major<span style={{ color: AMBER }}>.</span></span>
           <span>© {new Date().getFullYear()} FindYourMajor.org</span>
-          <a href="/privacy" style={{ color: "rgba(255,255,255,.5)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Privacy Policy</a>
-          <a href="/terms" style={{ color: "rgba(255,255,255,.5)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Terms of Service</a>
-          <span>Some links are affiliate links — <a href="/privacy#affiliates" style={{ color: "rgba(255,255,255,.5)" }}>disclosure</a></span>
+          <a href="/privacy" style={{ color: "rgba(255,255,255,.70)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Privacy Policy</a>
+          <a href="/terms" style={{ color: "rgba(255,255,255,.70)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Terms of Service</a>
+          <span>Some links are affiliate links — <a href="/privacy#affiliates" style={{ color: "rgba(255,255,255,.70)" }}>disclosure</a></span>
         </div>
       </footer>
     </div>
