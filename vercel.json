@@ -1,11 +1,19 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/report",
+      "destination": "https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/recommend.js": {
-      "maxDuration": 30
-    }
+    "api/recommend.js":    { "maxDuration": 30 },
+    "api/webhook.js":      { "maxDuration": 30 },
+    "api/save-answers.js": { "maxDuration": 10 }
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"; 
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { NAVY, AMBER, AMBER_L, SLATE, OFFWHT, WHITE, GREEN, INDIGO, PURPLE } from "../brand.js";
 import { Analytics } from "../brand.js";
@@ -445,7 +445,12 @@ function ytUrl(q) {
 }
 
 function shareText(results) {
-  return `My top college major matches:\n\n${results.slice(0, 3).map(r => `${r.rank}. ${r.name} (${r.fitScore}% fit)`).join("\n")}\n\nFind your match at Major.Match!`;
+  const top3 = results.slice(0, 3).map(r =>
+    `${r.rank}. ${r.name} (${r.fitScore}% fit) - ${r.salaryRange}`
+  ).join("\n");
+  const wildcard = results.find(r => r.isWildcard);
+  const wildcardLine = wildcard ? `\nSurprise pick: ${wildcard.name}` : "";
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized 13-page report?\nFor best results, have me click "Get the Full Report" from my results page - or get it directly for $9.99:\nhttps://findyourmajor.org/report`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -463,9 +468,9 @@ function VideoSection({ major, videoQueries, mobile }) {
       <div style={{ height: 1, background: "#F1F5F9", margin: "16px 0" }} />
       <button
         onClick={handleToggle}
-        style={{ background: "none", border: "none", color: AMBER, fontWeight: "700", fontSize: mobile ? "14px" : "13px", cursor: "pointer", padding: "4px 0", display: "flex", alignItems: "center", gap: "5px" }}
+        style={{ background: open ? "#1a3a6e" : NAVY, border: "2px solid " + NAVY, color: "white", fontWeight: "800", fontSize: mobile ? "15px" : "14px", cursor: "pointer", padding: "11px 20px", display: "flex", alignItems: "center", gap: "8px", borderRadius: 50, letterSpacing: "-.2px", WebkitTapHighlightColor: "transparent" }}
       >
-        🎬 {open ? "Hide" : "Watch"} videos about {major} {open ? "▲" : "▼"}
+        🎬 {open ? "Hide videos" : "Watch " + major + " videos"} {open ? "▲" : "▼"}
       </button>
       {open && (
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
@@ -540,15 +545,26 @@ export default function Quiz() {
   function shareResults() {
     Analytics.resultsShared();
     const txt = shareText(results);
-    if (navigator.share) { navigator.share({ title: "My Major.Match Results", text: txt }).catch(() => {}); }
-    else { navigator.clipboard.writeText(txt).then(() => showToast("📋 Copied to clipboard!")).catch(() => showToast("Could not copy.")); }
+    if (navigator.share) {
+      navigator.share({ title: "My college major matches - Find Your Major", text: txt })
+        .catch(() => {
+          // Share cancelled or unsupported — fall back to clipboard
+          navigator.clipboard.writeText(txt)
+            .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
+            .catch(() => showToast("Could not copy."));
+        });
+    } else {
+      navigator.clipboard.writeText(txt)
+        .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
+        .catch(() => showToast("Could not copy."));
+    }
   }
 
   function downloadResults() {
     const lines = ["MY FINDYOURMAJOR.ORG RESULTS", "============================", `Date: ${new Date().toLocaleDateString()}`, "", ...results.map(m => `#${m.rank} — ${m.name} (${m.fitScore}% fit)${m.isWildcard ? "  ✨ WILDCARD" : ""}\n${m.why}${m.firstStep ? `\nFirst step this week: ${m.firstStep}` : ""}\nSalary: ${m.salaryRange} | Outlook: ${m.jobOutlook}\nCareers: ${m.careers.join(", ")}\n`)].join("\n");
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([lines], { type: "text/plain" }));
-    a.download = "major-match-results.txt";
+    a.download = "findyourmajor-results.txt";
     a.click();
     showToast("📄 Downloaded!");
   }
@@ -560,7 +576,9 @@ export default function Quiz() {
     const top3 = results.slice(0, 3).map(r =>
       `  ${r.rank}. ${r.name} (${r.fitScore}% fit)\n     ${r.why}\n     Salary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\n     Careers: ${r.careers.slice(0,3).join(", ")}`
     ).join("\n\n");
-    return `Hi,\n\n${name} just used FindYourMajor.org and received their personalized AI major recommendations. Here are their top 3 matches:\n\n${top3}\n\nYou can explore all 5 results and video resources at:\nhttps://findyourmajor.org\n\nThis tool is completely free. Each recommendation includes salary data, career paths, and a first step to explore the major this week.\n\nHope this helps spark a great conversation!\n— FindYourMajor.org`;
+    const wildcard = results.find(r => r.isWildcard);
+    const wildcardLine = wildcard ? `\n  Wildcard pick: ${wildcard.name} - a surprising match worth exploring!` : "";
+    return `Hi,\n\n${name} just took a free AI quiz at FindYourMajor.org and wanted to share their college major results with you.\n\nHere are their top 3 AI-recommended majors:\n\n${top3}${wildcardLine}\n\n--------------------------------\nWANT THE FULL PERSONALIZED 13-PAGE REPORT? - $9.99\n--------------------------------\n\nThe free results above are a great starting point. The full Parent Report goes much deeper and is personalized to ${name}'s specific quiz answers:\n\n  - Extended analysis of all 5 recommended majors\n  - Recommended schools by budget and location\n  - 4-year course path showing what they'll actually study\n  - Salary deep-dive by city and industry\n  - Parent conversation guide with suggested questions\n  - 90-day action plan with concrete next steps\n\nFor a FULLY PERSONALIZED report, have ${name} click "Get the Full Report" from their results page at findyourmajor.org.\n\nOr purchase directly here for $9.99 (report will be based on general guidance):\nhttps://findyourmajor.org/report\n\n--------------------------------\n\nHope this helps spark a great conversation!\n- FindYourMajor.org\nhttps://findyourmajor.org`;
   }
 
   function handleSendToParent() {
@@ -669,7 +687,7 @@ export default function Quiz() {
         {/* Nav */}
         <div style={{ padding: mobile ? "18px 20px" : "22px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 2 }}>
           <span style={{ fontSize: mobile ? 20 : 22, fontWeight: 900, letterSpacing: "-0.5px" }}>
-            Major<span style={{ color: AMBER }}>.</span>Match
+            Find Your Major<span style={{ color: AMBER }}>.</span>
           </span>
           {saved && (
             <button
@@ -900,7 +918,7 @@ export default function Quiz() {
       {/* Sticky results header */}
       <div style={{ position: "sticky", top: 0, zIndex: 20, background: NAVY, padding: mobile ? "14px 16px" : "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: mobile ? 18 : 20, fontWeight: 900, color: WHITE, letterSpacing: "-.5px" }}>
-          Major<span style={{ color: AMBER }}>.</span>Match
+          Find Your Major<span style={{ color: AMBER }}>.</span>
         </span>
         <button
           onClick={restart}
@@ -926,7 +944,7 @@ export default function Quiz() {
             ) : (
               <button onClick={saveResults} style={{ background: "#22C55E", color: WHITE, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>💾 Save</button>
             )}
-            <button onClick={shareResults} style={{ background: WHITE, color: NAVY, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>🔗 Share</button>
+            <button onClick={shareResults} style={{ background: "white", color: NAVY, border: `2px solid white`, padding: mobile ? "12px 20px" : "10px 20px", borderRadius: 50, fontSize: 14, fontWeight: 800, cursor: "pointer", minWidth: mobile ? 100 : "auto" }}>📲 Send to Parent</button>
             <button onClick={downloadResults} style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>📄 Download</button>
           </div>
         </div>
@@ -1072,10 +1090,24 @@ export default function Quiz() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
               <button
-                onClick={() => {
+                onClick={async () => {
                   Analytics.affiliateClick("parent_report");
-                  // TODO: Replace with your Stripe payment link from dashboard.stripe.com/payment-links
-                  window.open("https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00", "_blank");
+                  try {
+                    // Save quiz answers so we can personalize the report after payment
+                    const res = await fetch("/api/save-answers", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ answers, results }),
+                    });
+                    const data = await res.json();
+                    const sessionId = data.sessionId || "";
+                    // Redirect to Stripe with session ID in the URL so webhook can find answers
+                    const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
+                    window.open(stripeUrl, "_blank");
+                  } catch (err) {
+                    console.warn("Could not save answers, redirecting anyway:", err);
+                    window.open("https://findyourmajor.org/report", "_blank");
+                  }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
                 Get the Full Report — $9.99 →
@@ -1141,14 +1173,14 @@ export default function Quiz() {
           {/* FTC disclosure */}
           <div style={{ padding: mobile ? "12px 16px 16px" : "12px 20px 18px", borderTop: "1px solid #F1F5F9" }}>
             <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.5, textAlign: "center" }}>
-              Some links above are affiliate links. If you sign up or purchase through them, Major.Match may earn a small commission at no extra cost to you. We only recommend tools we believe are genuinely helpful.
+              Some links above are affiliate links. If you sign up or purchase through them, FindYourMajor.org may earn a small commission at no extra cost to you. We only recommend tools we believe are genuinely helpful.
             </p>
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
           <button onClick={restart} style={{ background: "transparent", border: `2px solid ${NAVY}`, color: NAVY, padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>↺ Retake</button>
-          <button onClick={shareResults} style={{ background: NAVY, color: WHITE, border: "none", padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>🔗 Share Results</button>
+          <button onClick={shareResults} style={{ background: NAVY, color: WHITE, border: "none", padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Share with a Parent</button>
         </div>
       </div>
 
