@@ -12,8 +12,8 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/recommend.js":    { "maxDuration": 30 },
-    "api/webhook.js":      { "maxDuration": 30 },
+    "api/recommend.js":    { "maxDuration": 60 },
+    "api/webhook.js":      { "maxDuration": 60 },
     "api/save-answers.js": { "maxDuration": 10 }
   }
 }

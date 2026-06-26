@@ -105,7 +105,7 @@ export default async function handler(req, res) {
   try {
     const firstName = customerName.split(" ")[0];
     const html      = buildEmail(firstName, reportContent, quizData);
-    const fromAddr  = process.env.RESEND_FROM || "onboarding@resend.dev";
+    const fromAddr  = process.env.RESEND_FROM || "Find Your Major <onboarding@resend.dev>";
 
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",

@@ -100,7 +100,7 @@ Rules:
       },
       body: JSON.stringify({
         model,
-        max_tokens: 2200,
+        max_tokens: 1200,
         messages: [{ role: "user", content: prompt }],
       }),
     });
