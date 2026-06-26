@@ -147,27 +147,44 @@ export default async function handler(req, res) {
 async function generateReport(quizData, apiKey) {
   if (!apiKey) throw new Error("No Anthropic API key");
 
-  let context = "No quiz data available.";
-  if (quizData?.results?.length) {
-    context = `Top 5 major recommendations:\n` + quizData.results.map(r =>
+  const hasQuizData = quizData?.results?.length > 0;
+
+  let context = "";
+  if (hasQuizData) {
+    context = quizData.results.map(r =>
       `${r.rank}. ${r.name} (${r.fitScore}% fit) — ${r.why || ""}\nSalary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\nCareers: ${(r.careers || []).join(", ")}`
     ).join("\n\n");
   }
 
-  const prompt = `You are an expert college major advisor writing a personalized Parent Report.
+  const prompt = hasQuizData
+    ? `You are an expert college major advisor writing a personalized Parent Report for a specific student.
 
-Student's AI-recommended majors:
+The student's AI-recommended majors (based on their quiz answers):
 ${context}
 
 Write a warm, professional report with these sections:
-1. PERSONAL SUMMARY: 2-3 sentences about what this student's profile reveals.
-2. TOP MAJOR DEEP-DIVE: For the #1 major, what daily life looks like, who thrives in it, one surprising fact.
-3. WILDCARD SPOTLIGHT: If there's a wildcard major, why it makes sense for this student.
-4. SCHOOLS TO RESEARCH: 2-3 specific programs for the top major.
-5. CONVERSATION STARTERS: 3 specific questions for parent and student to discuss.
-6. THIS WEEK'S ACTION: One free, specific action to explore the top major.
+1. PERSONAL SUMMARY: 2-3 sentences about what this student's profile reveals about them as a person.
+2. TOP MAJOR DEEP-DIVE: For the #1 major, what daily life looks like, who thrives in it, one surprising fact most people don't know.
+3. WILDCARD SPOTLIGHT: If there's a wildcard major, explain in 2-3 sentences why it surprisingly fits this student.
+4. SCHOOLS TO RESEARCH: 2-3 specific programs known for quality in the top major (include budget-friendly options).
+5. CONVERSATION STARTERS: 3 specific, thoughtful questions for parent and student to discuss together.
+6. THIS WEEK'S ACTION: One free, specific action the student can take in the next 7 days.
 
-Keep it under 500 words. Warm, encouraging tone. Be specific — reference the actual major names.`;
+Keep it under 500 words. Warm, encouraging tone. Reference the actual major names throughout.`
+
+    : `You are an expert college major advisor writing a helpful Parent Report for a family exploring college major options.
+
+This report was purchased directly, so we don't have the student's specific quiz answers. Write a general but highly useful guide covering:
+
+1. HOW TO USE FINDYOURMAJOR.ORG: Encourage the student to take the free quiz at findyourmajor.org to get personalized recommendations. Explain that the quiz takes 3 minutes and asks about interests, strengths, values, and dealbreakers.
+2. TOP MAJORS TO EXPLORE: Cover 5 diverse, in-demand majors that many undecided students find surprising fits: (1) Behavioral Economics, (2) Human-Computer Interaction, (3) Public Health, (4) Environmental Science, (5) Organizational Psychology. For each, explain who tends to thrive in it.
+3. QUESTIONS TO ASK YOUR STUDENT: 5 powerful questions parents can ask to help their student discover what they really want.
+4. RED FLAGS TO AVOID: Common mistakes students make when choosing a major (following friends, chasing salary only, ignoring strengths).
+5. THIS WEEK'S ACTION: One specific step to take as a family this week.
+
+Note at the end: For a fully personalized report based on your student's specific answers, have them take the free quiz at findyourmajor.org and click "Get the Full Report" from their results page.
+
+Keep it under 600 words. Warm, practical, encouraging.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",

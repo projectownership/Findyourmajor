@@ -450,7 +450,7 @@ function shareText(results) {
   ).join("\n");
   const wildcard = results.find(r => r.isWildcard);
   const wildcardLine = wildcard ? `\nSurprise pick: ${wildcard.name}` : "";
-  return `Hey! I just took a free AI quiz that recommended my top college majors - check it out!\n\nMy top matches:\n${top3}${wildcardLine}\n\nSee all my results + career paths + salary info:\nhttps://findyourmajor.org\n\n---\nWant the full 13-page report with school recommendations, 4-year course plan, and a parent conversation guide?\nGet it for $9.99: https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00`;
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\nSee all 5 of my results free at:\nhttps://findyourmajor.org\n\n---\nWant the full personalized 13-page report?\nFor best results, have me click "Get the Full Report" from my results page - or get it directly for $9.99:\nhttps://findyourmajor.org/report`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -578,7 +578,7 @@ export default function Quiz() {
     ).join("\n\n");
     const wildcard = results.find(r => r.isWildcard);
     const wildcardLine = wildcard ? `\n  Wildcard pick: ${wildcard.name} - a surprising match worth exploring!` : "";
-    return `Hi,\n\n${name} just used FindYourMajor.org - a free AI college major advisor - and wanted to share their results with you.\n\nHere are their top 3 major matches:\n\n${top3}${wildcardLine}\n\nSee all 5 results free at:\nhttps://findyourmajor.org\n\n--------------------------------\nWANT THE FULL 13-PAGE PARENT REPORT? - $9.99\n--------------------------------\n\nThe free results above are just the starting point. The full Parent Report includes:\n\n  - Extended analysis of all 5 recommended majors\n  - Recommended schools by budget and location\n  - 4-year course path showing what they'll actually study\n  - Salary deep-dive by city and industry\n  - Parent conversation guide with suggested questions\n  - 90-day action plan with concrete next steps\n\nGet the full report (one-time, instant delivery):\nhttps://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00\n\nOnly $9.99 - less than a pizza, and it could save your student a semester of wrong turns.\n\n--------------------------------\n\nHope this helps spark a great conversation!\n- FindYourMajor.org\nhttps://findyourmajor.org`;
+    return `Hi,\n\n${name} just took a free AI quiz at FindYourMajor.org and wanted to share their college major results with you.\n\nHere are their top 3 AI-recommended majors:\n\n${top3}${wildcardLine}\n\nSee all 5 results + career paths + salary data free at:\nhttps://findyourmajor.org\n\n--------------------------------\nWANT THE FULL PERSONALIZED 13-PAGE REPORT? - $9.99\n--------------------------------\n\nThe free results above are a great starting point. The full Parent Report goes much deeper and is personalized to ${name}'s specific quiz answers:\n\n  - Extended analysis of all 5 recommended majors\n  - Recommended schools by budget and location\n  - 4-year course path showing what they'll actually study\n  - Salary deep-dive by city and industry\n  - Parent conversation guide with suggested questions\n  - 90-day action plan with concrete next steps\n\nFor a FULLY PERSONALIZED report, have ${name} click "Get the Full Report" from their results page at findyourmajor.org.\n\nOr purchase directly here for $9.99 (report will be based on general guidance):\nhttps://findyourmajor.org/report\n\n--------------------------------\n\nHope this helps spark a great conversation!\n- FindYourMajor.org\nhttps://findyourmajor.org`;
   }
 
   function handleSendToParent() {
@@ -1102,11 +1102,11 @@ export default function Quiz() {
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
                     // Redirect to Stripe with session ID in the URL so webhook can find answers
-                    const stripeUrl = `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`;
+                    const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");
                   } catch (err) {
                     console.warn("Could not save answers, redirecting anyway:", err);
-                    window.open("https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00", "_blank");
+                    window.open("https://findyourmajor.org/report", "_blank");
                   }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
