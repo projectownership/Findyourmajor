@@ -148,6 +148,7 @@ async function generateReport(quizData, apiKey) {
   if (!apiKey) throw new Error("No Anthropic API key");
 
   const hasQuizData = quizData?.results?.length > 0;
+  console.log("Has quiz data:", hasQuizData, "SessionId:", sessionId);
 
   let context = "";
   if (hasQuizData) {
