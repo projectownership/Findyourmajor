@@ -58,7 +58,7 @@ export default function Landing() {
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ background: `linear-gradient(150deg, rgba(10,22,40,0.93) 0%, rgba(15,31,61,0.90) 55%, rgba(13,37,87,0.92) 100%), url("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
+      <section style={{ background: `linear-gradient(150deg, rgba(10,22,40,0.65) 0%, rgba(15,31,61,0.60) 55%, rgba(13,37,87,0.65) 100%), url("https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=1400&q=80") center/cover no-repeat`, padding: "88px 24px 80px", textAlign: "center", color: WHITE, position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 60%, rgba(245,166,35,.08) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(99,102,241,.09) 0%, transparent 50%)", pointerEvents: "none" }} />
         <div style={{ position: "relative", zIndex: 1 }}>
           <div className="fu" style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(245,166,35,.12)", border: "1px solid rgba(245,166,35,.3)", color: AMBER, fontWeight: 600, fontSize: 13, padding: "6px 18px", borderRadius: 20, marginBottom: 28 }}>
