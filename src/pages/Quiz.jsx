@@ -444,13 +444,16 @@ function ytUrl(q) {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
 }
 
-function shareText(results) {
+function shareText(results, sessionId) {
   const top3 = results.slice(0, 3).map(r =>
     `${r.rank}. ${r.name} (${r.fitScore}% fit) - ${r.salaryRange}`
   ).join("\n");
   const wildcard = results.find(r => r.isWildcard);
   const wildcardLine = wildcard ? `\nSurprise pick: ${wildcard.name}` : "";
-  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized 13-page Parent Report?\nIt covers school recommendations, 4-year course plan, salary data, and a parent conversation guide - all based on my specific quiz answers.\n\nHave me click "Get the Full Report" from my results page, or visit:\nhttps://findyourmajor.org/report`;
+  const reportUrl = sessionId
+    ? `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`
+    : 'https://findyourmajor.org';
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized 13-page Parent Report for $9.99?\nThis link is tied to MY specific quiz answers so the report will be personalized just for me:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -508,10 +511,7 @@ export default function Quiz() {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "" });
-  const [showParentForm, setShowParentForm] = useState(false);
-  const [parentEmail, setParentEmail]       = useState("");
   const [studentName, setStudentName]       = useState("");
-  const [parentSent, setParentSent]         = useState(false);
   const topRef = useRef(null);
 
   const q = QUESTIONS[step];
@@ -542,21 +542,32 @@ export default function Quiz() {
     } catch { showToast("Could not save."); }
   }
 
-  function shareResults() {
+  async function shareResults() {
     Analytics.resultsShared();
-    const txt = shareText(results);
+    let sessionId = '';
+    try {
+      const res = await fetch('/api/save-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers, results }),
+      });
+      const data = await res.json();
+      sessionId = data.sessionId || '';
+    } catch (err) {
+      console.warn('Could not save answers for share:', err);
+    }
+    const txt = shareText(results, sessionId);
     if (navigator.share) {
-      navigator.share({ title: "My college major matches - Find Your Major", text: txt })
+      navigator.share({ title: 'My college major matches - Find Your Major', text: txt })
         .catch(() => {
-          // Share cancelled or unsupported — fall back to clipboard
           navigator.clipboard.writeText(txt)
-            .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
-            .catch(() => showToast("Could not copy."));
+            .then(() => showToast('Copied! Paste into iMessage, WhatsApp, or any app.'))
+            .catch(() => showToast('Could not copy.'));
         });
     } else {
       navigator.clipboard.writeText(txt)
-        .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
-        .catch(() => showToast("Could not copy."));
+        .then(() => showToast('Copied! Paste into iMessage, WhatsApp, or any app.'))
+        .catch(() => showToast('Could not copy.'));
     }
   }
 
@@ -571,29 +582,7 @@ export default function Quiz() {
 
   // ── Parent feature helpers ────────────────────────────────────────────────
 
-  function generateParentText() {
-    const name = studentName.trim() || "your student";
-    const top3 = results.slice(0, 3).map(r =>
-      `  ${r.rank}. ${r.name} (${r.fitScore}% fit)\n     ${r.why}\n     Salary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\n     Careers: ${r.careers.slice(0,3).join(", ")}`
-    ).join("\n\n");
-    const wildcard = results.find(r => r.isWildcard);
-    const wildcardLine = wildcard ? `\n  Wildcard pick: ${wildcard.name} - a surprising match worth exploring!` : "";
-    return `Hi,\n\n${name} just took a free AI quiz at FindYourMajor.org and wanted to share their college major results with you.\n\nHere are their top 3 AI-recommended majors:\n\n${top3}${wildcardLine}\n\n--------------------------------\nWANT THE FULL PERSONALIZED 13-PAGE REPORT? - $9.99\n--------------------------------\n\nThe free results above are a great starting point. The full Parent Report goes much deeper and is personalized to ${name}'s specific quiz answers:\n\n  - Extended analysis of all 5 recommended majors\n  - Recommended schools by budget and location\n  - 4-year course path showing what they'll actually study\n  - Salary deep-dive by city and industry\n  - Parent conversation guide with suggested questions\n  - 90-day action plan with concrete next steps\n\nTo get the full personalized report, have ${name} click "Get the Full Report" from their results page at findyourmajor.org — or ask them to share this link with you:\nhttps://findyourmajor.org/report\n\n--------------------------------\n\nHope this helps spark a great conversation!\n- FindYourMajor.org\nhttps://findyourmajor.org`;
-  }
 
-  function handleSendToParent() {
-    const text = generateParentText();
-    if (parentEmail.trim() && parentEmail.includes("@")) {
-      const mailto = `mailto:${encodeURIComponent(parentEmail)}?subject=${encodeURIComponent("Your student's college major results from FindYourMajor.org")}&body=${encodeURIComponent(text)}`;
-      window.open(mailto);
-      setParentSent(true);
-      showToast("📧 Email app opened — just hit Send!");
-    } else {
-      navigator.clipboard.writeText(text)
-        .then(() => { setParentSent(true); showToast("📋 Copied! Paste it into any message or email."); })
-        .catch(() => showToast("Could not copy. Please try again."));
-    }
-  }
 
   async function submitAnswers() {
     setPhase("loading");
@@ -997,66 +986,6 @@ export default function Quiz() {
           );
         })}
 
-        {/* ── Send to Parent ───────────────────────────────────────────── */}
-        <div className="fu" style={{ marginTop: 20, background: WHITE, borderRadius: mobile ? 16 : 18, border: `2px solid ${AMBER}`, boxShadow: "0 2px 16px rgba(245,166,35,.12)", overflow: "hidden" }}>
-          <div style={{ background: "linear-gradient(135deg,#78350F,#92400E)", padding: mobile ? "18px 20px" : "22px 28px", color: WHITE, display: "flex", alignItems: "center", gap: 14 }}>
-            <span style={{ fontSize: 32, flexShrink: 0 }}>👨‍👩‍👧</span>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.75, marginBottom: 4 }}>For Parents</div>
-              <h3 style={{ fontSize: mobile ? 18 : 21, fontWeight: 800, letterSpacing: "-.3px", lineHeight: 1.2, margin: 0 }}>Send these results to a parent</h3>
-            </div>
-          </div>
-          <div style={{ padding: mobile ? "16px" : "20px 24px" }}>
-            {!parentSent ? (
-              <div>
-                <p style={{ fontSize: mobile ? 13 : 14, color: SLATE, lineHeight: 1.6, marginBottom: 14 }}>
-                  Share a full summary with a parent or guardian — includes major descriptions, salary ranges, and career paths in a ready-to-read format.
-                </p>
-                {!showParentForm ? (
-                  <button onClick={() => setShowParentForm(true)}
-                    style={{ background: "#92400E", color: WHITE, border: "none", padding: mobile ? "14px 0" : "12px 28px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                    📧 Send to a Parent
-                  </button>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: NAVY, display: "block", marginBottom: 5 }}>Your first name (optional)</label>
-                      <input value={studentName} onChange={e => setStudentName(e.target.value)} placeholder="e.g. Jordan"
-                        style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "2px solid #E2E8F0", fontSize: 15, fontFamily: "inherit", outline: "none", color: NAVY }} />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: NAVY, display: "block", marginBottom: 5 }}>Parent's email address</label>
-                      <input type="email" value={parentEmail} onChange={e => setParentEmail(e.target.value)} placeholder="parent@email.com"
-                        style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "2px solid #E2E8F0", fontSize: 15, fontFamily: "inherit", outline: "none", color: NAVY }} />
-                    </div>
-                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button onClick={handleSendToParent}
-                        style={{ flex: 1, background: "#92400E", color: WHITE, border: "none", padding: "13px 12px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: 140 }}>
-                        📧 Open Email App
-                      </button>
-                      <button onClick={() => { navigator.clipboard.writeText(generateParentText()).then(() => { setParentSent(true); showToast("📋 Copied! Paste into any message."); }).catch(() => showToast("Could not copy.")); }}
-                        style={{ flex: 1, background: OFFWHT, color: NAVY, border: "2px solid #E2E8F0", padding: "13px 12px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: 140 }}>
-                        📋 Copy to Clipboard
-                      </button>
-                    </div>
-                    <p style={{ fontSize: 11, color: SLATE, lineHeight: 1.5 }}>
-                      "Open Email App" opens your default mail app with the full report pre-written. We never store email addresses.
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 0" }}>
-                <span style={{ fontSize: 32 }}>✅</span>
-                <div>
-                  <div style={{ fontWeight: 800, fontSize: 15, color: NAVY, marginBottom: 3 }}>Report ready to send!</div>
-                  <div style={{ fontSize: 13, color: SLATE }}>Your parent will get a full summary of your top major matches, salary data, and career paths.</div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* ── Parent Report Upsell ($9.99) ──────────────────────────────────── */}
         <div className="fu" style={{ marginTop: 16, background: `linear-gradient(135deg,${NAVY} 0%,#1a3a6e 100%)`, borderRadius: mobile ? 16 : 18, overflow: "hidden", position: "relative" }}>
           <div style={{ position: "absolute", top: 16, right: 16, background: AMBER, color: NAVY, fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, zIndex: 1 }}>Launch Price</div>
@@ -1180,7 +1109,7 @@ export default function Quiz() {
 
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
           <button onClick={restart} style={{ background: "transparent", border: `2px solid ${NAVY}`, color: NAVY, padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>↺ Retake</button>
-          <button onClick={shareResults} style={{ background: NAVY, color: WHITE, border: "none", padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Share with a Parent</button>
+          <button onClick={shareResults} style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "14px 32px" : "14px 36px", borderRadius: 50, fontSize: 15, fontWeight: 800, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)" }}>📲 Share with a Parent</button>
         </div>
       </div>
 
