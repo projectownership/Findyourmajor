@@ -445,7 +445,12 @@ function ytUrl(q) {
 }
 
 function shareText(results) {
-  return `My top college major matches:\n\n${results.slice(0, 3).map(r => `${r.rank}. ${r.name} (${r.fitScore}% fit)`).join("\n")}\n\nFind your major at findyourmajor.org!`;
+  const top3 = results.slice(0, 3).map(r =>
+    `${r.rank}. ${r.name} (${r.fitScore}% fit) - ${r.salaryRange}`
+  ).join("\n");
+  const wildcard = results.find(r => r.isWildcard);
+  const wildcardLine = wildcard ? `\nSurprise pick: ${wildcard.name}` : "";
+  return `Hey! I just took a free AI quiz that recommended my top college majors - check it out!\n\nMy top matches:\n${top3}${wildcardLine}\n\nSee all my results + career paths + salary info:\nhttps://findyourmajor.org\n\n---\nWant the full 13-page report with school recommendations, 4-year course plan, and a parent conversation guide?\nGet it for $9.99: https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -540,8 +545,19 @@ export default function Quiz() {
   function shareResults() {
     Analytics.resultsShared();
     const txt = shareText(results);
-    if (navigator.share) { navigator.share({ title: "My Find Your Major Results", text: txt }).catch(() => {}); }
-    else { navigator.clipboard.writeText(txt).then(() => showToast("📋 Copied to clipboard!")).catch(() => showToast("Could not copy.")); }
+    if (navigator.share) {
+      navigator.share({ title: "My college major matches - Find Your Major", text: txt })
+        .catch(() => {
+          // Share cancelled or unsupported — fall back to clipboard
+          navigator.clipboard.writeText(txt)
+            .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
+            .catch(() => showToast("Could not copy."));
+        });
+    } else {
+      navigator.clipboard.writeText(txt)
+        .then(() => showToast("Copied! Paste into iMessage, WhatsApp, or any app."))
+        .catch(() => showToast("Could not copy."));
+    }
   }
 
   function downloadResults() {
@@ -560,7 +576,9 @@ export default function Quiz() {
     const top3 = results.slice(0, 3).map(r =>
       `  ${r.rank}. ${r.name} (${r.fitScore}% fit)\n     ${r.why}\n     Salary: ${r.salaryRange} | Outlook: ${r.jobOutlook}\n     Careers: ${r.careers.slice(0,3).join(", ")}`
     ).join("\n\n");
-    return `Hi,\n\n${name} just used FindYourMajor.org and received their personalized AI major recommendations. Here are their top 3 matches:\n\n${top3}\n\nYou can explore all 5 results and video resources at:\nhttps://findyourmajor.org\n\nThis tool is completely free. Each recommendation includes salary data, career paths, and a first step to explore the major this week.\n\nHope this helps spark a great conversation!\n— FindYourMajor.org`;
+    const wildcard = results.find(r => r.isWildcard);
+    const wildcardLine = wildcard ? `\n  Wildcard pick: ${wildcard.name} - a surprising match worth exploring!` : "";
+    return `Hi,\n\n${name} just used FindYourMajor.org - a free AI college major advisor - and wanted to share their results with you.\n\nHere are their top 3 major matches:\n\n${top3}${wildcardLine}\n\nSee all 5 results free at:\nhttps://findyourmajor.org\n\n--------------------------------\nWANT THE FULL 13-PAGE PARENT REPORT? - $9.99\n--------------------------------\n\nThe free results above are just the starting point. The full Parent Report includes:\n\n  - Extended analysis of all 5 recommended majors\n  - Recommended schools by budget and location\n  - 4-year course path showing what they'll actually study\n  - Salary deep-dive by city and industry\n  - Parent conversation guide with suggested questions\n  - 90-day action plan with concrete next steps\n\nGet the full report (one-time, instant delivery):\nhttps://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00\n\nOnly $9.99 - less than a pizza, and it could save your student a semester of wrong turns.\n\n--------------------------------\n\nHope this helps spark a great conversation!\n- FindYourMajor.org\nhttps://findyourmajor.org`;
   }
 
   function handleSendToParent() {
@@ -926,7 +944,7 @@ export default function Quiz() {
             ) : (
               <button onClick={saveResults} style={{ background: "#22C55E", color: WHITE, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>💾 Save</button>
             )}
-            <button onClick={shareResults} style={{ background: WHITE, color: NAVY, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>🔗 Share</button>
+            <button onClick={shareResults} style={{ background: "white", color: NAVY, border: `2px solid white`, padding: mobile ? "12px 20px" : "10px 20px", borderRadius: 50, fontSize: 14, fontWeight: 800, cursor: "pointer", minWidth: mobile ? 100 : "auto" }}>📲 Send to Parent</button>
             <button onClick={downloadResults} style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "12px 20px" : "10px 18px", borderRadius: 50, fontSize: 14, fontWeight: 700, cursor: "pointer", minWidth: mobile ? 90 : "auto" }}>📄 Download</button>
           </div>
         </div>
@@ -1162,7 +1180,7 @@ export default function Quiz() {
 
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 24, flexWrap: "wrap" }}>
           <button onClick={restart} style={{ background: "transparent", border: `2px solid ${NAVY}`, color: NAVY, padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>↺ Retake</button>
-          <button onClick={shareResults} style={{ background: NAVY, color: WHITE, border: "none", padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>🔗 Share Results</button>
+          <button onClick={shareResults} style={{ background: NAVY, color: WHITE, border: "none", padding: mobile ? "13px 28px" : "13px 32px", borderRadius: 50, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Share with a Parent</button>
         </div>
       </div>
 
