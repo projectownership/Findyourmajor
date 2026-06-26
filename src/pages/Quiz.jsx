@@ -997,16 +997,16 @@ export default function Quiz() {
               <span style={{ fontSize: mobile ? 13 : 15, fontWeight: 500, color: "rgba(255,255,255,.45)", textDecoration: "line-through", marginLeft: 10 }}>$19.99</span>
             </h3>
             <p style={{ fontSize: mobile ? 13 : 15, color: "rgba(255,255,255,.72)", lineHeight: 1.65, marginBottom: 20, maxWidth: 500 }}>
-              A polished PDF report for parents and students to review together. Goes far beyond the free results — built for the college decision conversation.
+              A comprehensive email report personalized to your student's specific quiz answers. Delivered instantly after purchase — built for the college decision conversation.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
               {[
-                ["📊", "Extended major analysis", "Deep dive on all 5 matches, not just snippets"],
-                ["🏫", "Recommended schools", "Top colleges by budget, location & specialty"],
-                ["📅", "4-year course path", "What your student actually studies each year"],
-                ["💰", "Salary deep-dive", "Entry-level to senior pay, by city & industry"],
-                ["🗣️", "Parent conversation guide", "Questions to ask, topics to explore together"],
-                ["🎯", "90-day action plan", "Concrete next steps to confirm the right fit"],
+                ["\U0001f3af", "Personal profile summary", "What your student's results reveal about who they are"],
+                ["\U0001f50d", "Deep dive: your #1 major", "Daily life, who thrives, and surprising facts"],
+                ["\U0001f3eb", "Recommended schools", "Budget-friendly, mid-range & top programs"],
+                ["\U0001f4b0", "Salary deep-dive", "Entry-level to senior pay for top 3 majors"],
+                ["\U0001f4c5", "4-year course path", "Typical courses year-by-year for the top major"],
+                ["\U0001f5e3", "Conversation guide + 90-day plan", "Questions to ask and concrete next steps"],
               ].map(([icon, title, desc]) => (
                 <div key={title} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "10px 12px" }}>
                   <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
@@ -1043,7 +1043,7 @@ export default function Quiz() {
               </button>
             </div>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,.3)", marginTop: 14, lineHeight: 1.5 }}>
-              One-time payment · Instant PDF download · 30-day money-back guarantee · Secure checkout via Stripe
+              One-time payment · Delivered by email within 60 seconds · Secure checkout via Stripe
             </p>
           </div>
         </div>
