@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { NAVY, AMBER, AMBER_L, SLATE, OFFWHT, WHITE, GREEN, INDIGO, PURPLE } from "../brand.js";
+import { CompassWordmark, CompassIcon } from "../components/CompassLogo.jsx";
 import { Analytics } from "../brand.js";
 
 // ─── Questions ────────────────────────────────────────────────────────────────
@@ -689,9 +690,7 @@ export default function Quiz() {
 
         {/* Nav */}
         <div style={{ padding: mobile ? "18px 20px" : "22px 40px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 2 }}>
-          <span style={{ fontSize: mobile ? 20 : 22, fontWeight: 900, letterSpacing: "-0.5px" }}>
-            Find Your Major<span style={{ color: AMBER }}>.</span>
-          </span>
+          <CompassWordmark size={mobile ? 0.85 : 0.95} />
           {saved && (
             <button
               onClick={() => { try { const s = localStorage.getItem("mm_results"); if (s) { setResults(JSON.parse(s).results); setPhase("results"); } } catch {} }}
@@ -920,9 +919,7 @@ export default function Quiz() {
 
       {/* Sticky results header */}
       <div style={{ position: "sticky", top: 0, zIndex: 20, background: NAVY, padding: mobile ? "14px 16px" : "16px 28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: mobile ? 18 : 20, fontWeight: 900, color: WHITE, letterSpacing: "-.5px" }}>
-          Find Your Major<span style={{ color: AMBER }}>.</span>
-        </span>
+        <CompassWordmark size={mobile ? 0.78 : 0.88} dark={true} />
         <button
           onClick={restart}
           style={{ background: "rgba(255,255,255,.1)", border: "1px solid rgba(255,255,255,.2)", color: WHITE, padding: "7px 14px", borderRadius: 50, fontSize: 13, fontWeight: 600, cursor: "pointer" }}

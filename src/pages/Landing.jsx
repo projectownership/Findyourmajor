@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { CompassWordmark } from "../components/CompassLogo.jsx";
 import { NAVY, AMBER, AMBER_L, SLATE, OFFWHT, WHITE, GREEN, INDIGO } from "../brand.js";
 import { Analytics } from "../brand.js";
 
@@ -49,9 +50,7 @@ export default function Landing() {
 
       {/* ── NAV ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(255,255,255,.95)", backdropFilter: "blur(12px)", borderBottom: "1px solid #E8EDF5", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: "-.5px", color: NAVY }}>
-          Find Your Major<span style={{ color: AMBER }}>.</span>
-        </span>
+          <CompassWordmark size={0.9} />
         <button onClick={startQuiz} style={{ background: AMBER, color: NAVY, border: "none", padding: "9px 22px", borderRadius: 50, fontSize: 14, fontWeight: 800, cursor: "pointer", boxShadow: "0 3px 12px rgba(245,166,35,.35)" }}>
           Take the Quiz →
         </button>
@@ -203,7 +202,7 @@ export default function Landing() {
       {/* ── FOOTER ── */}
       <footer style={{ background: NAVY, color: "rgba(255,255,255,.70)", padding: "28px 24px", textAlign: "center", fontSize: 13 }}>
         <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "8px 24px" }}>
-          <span style={{ color: WHITE, fontWeight: 800, fontSize: 15 }}>Find Your Major<span style={{ color: AMBER }}>.</span></span>
+          <CompassWordmark size={0.7} dark={true} />
           <span>© {new Date().getFullYear()} FindYourMajor.org</span>
           <a href="/privacy" style={{ color: "rgba(255,255,255,.70)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Privacy Policy</a>
           <a href="/terms" style={{ color: "rgba(255,255,255,.70)", textDecoration: "none" }} onMouseEnter={e => e.target.style.color=WHITE} onMouseLeave={e => e.target.style.color="rgba(255,255,255,.5)"}>Terms of Service</a>
