@@ -9,11 +9,12 @@
     }
   ],
   "rewrites": [
+    { "source": "/counselors", "destination": "/counselors.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/recommend.js":    { "maxDuration": 60 },
-    "api/webhook.js":      { "maxDuration": 60 },
+    "api/webhook.js":      { "maxDuration": 90 },
     "api/save-answers.js": { "maxDuration": 10 }
   }
 }

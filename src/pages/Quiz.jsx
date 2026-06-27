@@ -454,7 +454,7 @@ function shareText(results, sessionId) {
   const reportUrl = sessionId
     ? `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`
     : 'https://findyourmajor.org';
-  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full personalized Parent Report emailed to you for $9.99?\nThis link is tied to MY specific quiz answers so the report will be personalized just for me:\n${reportUrl}\n\n(Link expires in 24 hours)`;
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($9.99)\nIncludes real company names, salary breakdowns, school recommendations, and a 90-day action plan — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -1009,23 +1009,23 @@ export default function Quiz() {
         <div className="fu" style={{ marginTop: 16, background: `linear-gradient(135deg,${NAVY} 0%,#1a3a6e 100%)`, borderRadius: mobile ? 16 : 18, overflow: "hidden", position: "relative" }}>
           <div style={{ position: "absolute", top: 16, right: 16, background: AMBER, color: NAVY, fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, zIndex: 1 }}>Launch Price</div>
           <div style={{ padding: mobile ? "24px 20px 28px" : "28px 32px 32px", color: WHITE }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: AMBER, marginBottom: 10 }}>Parent Report</div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: AMBER, marginBottom: 10 }}>Full Parent Report — Personalized AI Analysis</div>
             <h3 style={{ fontSize: mobile ? 21 : 26, fontWeight: 900, letterSpacing: "-.5px", marginBottom: 10, lineHeight: 1.15 }}>
-              Get the full personalized Parent Report<br />
+              Everything you need for the college major conversation<br />
               <span style={{ color: AMBER }}>$9.99</span>
               <span style={{ fontSize: mobile ? 13 : 15, fontWeight: 500, color: "rgba(255,255,255,.45)", textDecoration: "line-through", marginLeft: 10 }}>$19.99</span>
             </h3>
             <p style={{ fontSize: mobile ? 13 : 15, color: "rgba(255,255,255,.72)", lineHeight: 1.65, marginBottom: 20, maxWidth: 500 }}>
-              A comprehensive email report personalized to your student's specific quiz answers. Delivered instantly after purchase — built for the college decision conversation.
+              A detailed, AI-written report based on your student's exact quiz answers. Includes real company names, specific job titles, salary ranges by city, school recommendations, and a 90-day action plan. Delivered to your inbox in under 60 seconds.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
               {[
-                ["🎯", "Personal profile summary", "What your student's results reveal about who they are"],
-                ["🔍", "Deep dive: your #1 major", "Daily life, who thrives, and surprising facts"],
-                ["🏫", "Recommended schools", "Budget-friendly, mid-range & top programs"],
-                ["💰", "Salary deep-dive", "Entry-level to senior pay for top 3 majors"],
-                ["📅", "4-year course path", "Typical courses year-by-year for the top major"],
-                ["🗣️", "Conversation guide + 90-day plan", "Questions to ask and concrete next steps"],
+                ["🎯", "Personal profile summary", "What your student's quiz answers reveal about their thinking style and ideal work environment"],
+                ["🔍", "Career deep-dive for your #1 major", "Real job titles, top companies hiring, and an emerging career path that didn't exist 10 years ago"],
+                ["🏫", "Recommended schools", "3 programs per top major — budget-friendly, mid-range, and top-ranked — with what makes each one worth considering"],
+                ["💰", "Full salary breakdown", "Entry → mid → senior pay ranges with specific job titles and the cities where salaries are highest"],
+                ["📅", "4-year course path + internship guide", "Year-by-year courses with descriptions, plus which companies to target for internships"],
+                ["🗣️", "6 conversation questions + 90-day plan", "Tailored questions to open dialogue, plus a month-by-month action plan with specific next steps"],
               ].map(([icon, title, desc]) => (
                 <div key={title} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "10px 12px" }}>
                   <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
@@ -1062,7 +1062,7 @@ export default function Quiz() {
               </button>
             </div>
             <p style={{ fontSize: 11, color: "rgba(255,255,255,.3)", marginTop: 14, lineHeight: 1.5 }}>
-              One-time payment · Delivered by email within 60 seconds · Secure checkout via Stripe
+              One-time payment · No subscription · Emailed within 60 seconds of purchase · Secure checkout via Stripe
             </p>
           </div>
         </div>
