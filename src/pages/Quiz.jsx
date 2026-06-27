@@ -514,6 +514,7 @@ export default function Quiz() {
   const [toast, setToast] = useState({ show: false, msg: "" });
   const [studentName, setStudentName]       = useState("");
   const [refCode, setRefCode] = useState("");
+  const [counselorProfile, setCounselorProfile] = useState(null);
   const topRef = useRef(null);
 
   const q = QUESTIONS[step];
@@ -528,6 +529,11 @@ export default function Quiz() {
       if (ref) {
         setRefCode(ref);
         sessionStorage.setItem("fym_ref", ref); // persist through quiz
+        // Fetch counselor profile for white-label branding
+        fetch(`/api/counselor-profile?ref=${encodeURIComponent(ref)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(profile => { if (profile?.name) setCounselorProfile(profile); })
+          .catch(() => {});
       }
     } catch {}
   }, []);
@@ -949,11 +955,30 @@ export default function Quiz() {
           </div>
         </div>
 
-        {/* Counselor referral banner */}
+        {/* Counselor white-label banner */}
         {refCode && (
-          <div style={{ background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 18 }}>🎓</span>
-            <span style={{ fontSize: 13, color: "#4338CA", fontWeight: 600 }}>Shared by your counselor · Personalized by Find Your Major AI</span>
+          <div style={{ background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 12, padding: "12px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 12 }}>
+            {counselorProfile?.logo ? (
+              <img src={counselorProfile.logo} alt={counselorProfile.school || "School logo"} style={{ width: 36, height: 36, borderRadius: 6, objectFit: "contain", background: "white", padding: 2 }} />
+            ) : (
+              <span style={{ fontSize: 22 }}>🎓</span>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {counselorProfile?.name ? (
+                <>
+                  <div style={{ fontSize: 13, color: "#4338CA", fontWeight: 700, lineHeight: 1.3 }}>
+                    Shared by {counselorProfile.name}
+                    {counselorProfile.title ? ` · ${counselorProfile.title}` : ""}
+                  </div>
+                  {counselorProfile.school && (
+                    <div style={{ fontSize: 12, color: "#6366F1", marginTop: 2 }}>{counselorProfile.school}</div>
+                  )}
+                </>
+              ) : (
+                <span style={{ fontSize: 13, color: "#4338CA", fontWeight: 600 }}>Shared by your counselor · Personalized by Find Your Major AI</span>
+              )}
+            </div>
+            <div style={{ fontSize: 11, color: "#818CF8", fontWeight: 600, whiteSpace: "nowrap" }}>Powered by Find Your Major</div>
           </div>
         )}
 

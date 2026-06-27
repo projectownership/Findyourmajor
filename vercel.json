@@ -9,12 +9,14 @@
     }
   ],
   "rewrites": [
-    { "source": "/counselors", "destination": "/counselors.html" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/counselors",       "destination": "/counselors.html" },
+    { "source": "/counselors/setup", "destination": "/counselor-setup.html" },
+    { "source": "/((?!api/).*)",     "destination": "/index.html" }
   ],
   "functions": {
-    "api/recommend.js":    { "maxDuration": 60 },
-    "api/webhook.js":      { "maxDuration": 90 },
-    "api/save-answers.js": { "maxDuration": 10 }
+    "api/recommend.js":         { "maxDuration": 60 },
+    "api/webhook.js":           { "maxDuration": 90 },
+    "api/save-answers.js":      { "maxDuration": 10 },
+    "api/counselor-profile.js": { "maxDuration": 10 }
   }
 }

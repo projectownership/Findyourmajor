@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindYourMajor for Counselors — AI Major Recommendations for Your Students</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #0F1F3D;
+    --amber:   #F5A623;
+    --cream:   #FAFAF7;
+    --slate:   #6B7A99;
+    --light:   #F0F4FA;
+    --border:  #E2E8F0;
+    --green:   #166534;
+    --greenl:  #F0FDF4;
+    --white:   #FFFFFF;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--cream);
+    color: var(--navy);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250,250,247,.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; color: var(--navy); text-decoration: none; }
+  .nav-logo span { color: var(--amber); }
+  .nav-badge { background: var(--navy); color: var(--white); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-left: 10px; letter-spacing: .3px; }
+  .nav-cta { background: var(--navy); color: var(--white); padding: 9px 22px; border-radius: 50px; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
+  .nav-cta:hover { opacity: .85; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 90px 24px 80px;
+    text-align: center;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--amber);
+    border: 1px solid rgba(245,166,35,.3);
+    padding: 5px 16px; border-radius: 20px;
+    margin-bottom: 28px;
+    background: rgba(245,166,35,.06);
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', Georgia, serif;
+    font-size: clamp(36px, 6vw, 60px);
+    line-height: 1.1;
+    letter-spacing: -.5px;
+    color: var(--navy);
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+  .hero-sub {
+    font-size: clamp(16px, 2.5vw, 19px);
+    color: var(--slate);
+    max-width: 580px;
+    margin: 0 auto 40px;
+    line-height: 1.65;
+  }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--navy); color: var(--white);
+    padding: 15px 36px; border-radius: 50px;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 4px 20px rgba(15,31,61,.25);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(15,31,61,.3); }
+  .btn-secondary {
+    background: transparent; color: var(--navy);
+    padding: 15px 36px; border-radius: 50px;
+    font-size: 15px; font-weight: 600;
+    text-decoration: none;
+    border: 1.5px solid var(--border);
+    transition: border-color .15s, background .15s;
+  }
+  .btn-secondary:hover { border-color: var(--navy); background: var(--light); }
+  .hero-note { font-size: 13px; color: var(--slate); margin-top: 18px; }
+
+  /* ── SOCIAL PROOF BAR ── */
+  .proof-bar {
+    background: var(--navy);
+    padding: 18px 24px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .proof-item { text-align: center; }
+  .proof-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--amber); line-height: 1; }
+  .proof-label { font-size: 11px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+  /* ── SECTION WRAPPER ── */
+  .section { padding: 80px 24px; max-width: 1000px; margin: 0 auto; }
+  .section-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--amber); margin-bottom: 14px; }
+  .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 4vw, 42px); line-height: 1.15; color: var(--navy); margin-bottom: 16px; }
+  .section-sub { font-size: 17px; color: var(--slate); line-height: 1.65; max-width: 560px; }
+
+  /* ── PROBLEM SECTION ── */
+  .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 48px; }
+  .problem-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+  }
+  .problem-icon { font-size: 28px; margin-bottom: 14px; }
+  .problem-card h3 { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 8px; }
+  .problem-card p { font-size: 14px; color: var(--slate); line-height: 1.6; }
+
+  /* ── HOW IT WORKS ── */
+  .steps-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-top: 48px; }
+  .step {
+    display: grid; grid-template-columns: 64px 1fr;
+    gap: 0; align-items: stretch;
+    border-bottom: 1px solid var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step-num {
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px; color: var(--amber);
+    min-height: 100px;
+  }
+  .step-content { padding: 24px 28px; }
+  .step-content h3 { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .step-content p { font-size: 14px; color: var(--slate); line-height: 1.6; }
+  .step-tag { display: inline-block; background: var(--greenl); color: var(--green); font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 20px; margin-top: 8px; }
+
+  /* ── REPORT PREVIEW ── */
+  .report-wrap { background: var(--navy); border-radius: 20px; overflow: hidden; margin-top: 48px; }
+  .report-header { padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; justify-content: space-between; }
+  .report-logo { font-weight: 700; font-size: 15px; color: var(--white); }
+  .report-logo span { color: var(--amber); }
+  .report-tag { font-size: 11px; color: rgba(255,255,255,.4); }
+  .report-body { padding: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 600px) { .report-body { grid-template-columns: 1fr; } }
+  .report-section { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 10px; padding: 16px; }
+  .rs-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
+  .rs-line { height: 8px; background: rgba(255,255,255,.12); border-radius: 4px; margin-bottom: 6px; }
+  .rs-line.w60 { width: 60%; }
+  .rs-line.w80 { width: 80%; }
+  .rs-line.w45 { width: 45%; }
+  .rs-line.w70 { width: 70%; }
+  .rs-line.w90 { width: 90%; }
+  .major-pill { display: inline-block; background: rgba(245,166,35,.15); border: 1px solid rgba(245,166,35,.3); color: var(--amber); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin: 3px 3px 3px 0; }
+  .report-footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,.08); text-align: center; }
+  .report-footer p { font-size: 12px; color: rgba(255,255,255,.35); }
+  .white-label-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(245,166,35,.15); border: 1px solid rgba(245,166,35,.3); color: var(--amber); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; }
+
+  /* ── PRICING ── */
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 48px; }
+  .pricing-card {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 32px 28px;
+    position: relative;
+  }
+  .pricing-card.featured {
+    border-color: var(--navy);
+    box-shadow: 0 8px 32px rgba(15,31,61,.12);
+  }
+  .pricing-badge {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--navy); color: var(--white);
+    font-size: 11px; font-weight: 600; padding: 4px 16px; border-radius: 20px;
+    white-space: nowrap;
+  }
+  .pricing-tier { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--slate); margin-bottom: 12px; }
+  .pricing-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
+  .pricing-amount { font-family: 'DM Serif Display', serif; font-size: 42px; color: var(--navy); }
+  .pricing-period { font-size: 14px; color: var(--slate); }
+  .pricing-desc { font-size: 13px; color: var(--slate); margin-bottom: 24px; line-height: 1.5; }
+  .pricing-features { list-style: none; margin-bottom: 28px; }
+  .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--navy); margin-bottom: 10px; }
+  .pricing-features li::before { content: "✓"; color: var(--green); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .pricing-cta {
+    display: block; text-align: center;
+    padding: 13px; border-radius: 50px;
+    font-size: 14px; font-weight: 600;
+    text-decoration: none; transition: all .15s;
+  }
+  .pricing-cta.dark { background: var(--navy); color: var(--white); }
+  .pricing-cta.dark:hover { opacity: .88; }
+  .pricing-cta.light { background: var(--light); color: var(--navy); border: 1.5px solid var(--border); }
+  .pricing-cta.light:hover { border-color: var(--navy); }
+  .pricing-annual { font-size: 12px; color: var(--green); font-weight: 600; margin-top: 10px; text-align: center; }
+
+  /* ── TESTIMONIALS ── */
+  .testimonials-wrap { background: var(--navy); padding: 80px 24px; }
+  .testimonials-inner { max-width: 1000px; margin: 0 auto; }
+  .testimonials-inner .section-title { color: var(--white); }
+  .testimonials-inner .section-sub { color: rgba(255,255,255,.6); }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 48px; }
+  .testimonial-card { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 24px; }
+  .testimonial-quote { font-size: 15px; color: rgba(255,255,255,.85); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+  .testimonial-author { display: flex; align-items: center; gap: 12px; }
+  .testimonial-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--amber); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--navy); flex-shrink: 0; }
+  .testimonial-name { font-size: 14px; font-weight: 600; color: var(--white); }
+  .testimonial-role { font-size: 12px; color: rgba(255,255,255,.45); }
+
+  /* ── FAQ ── */
+  .faq-list { margin-top: 48px; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 24px 0; }
+  .faq-q { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 10px; }
+  .faq-a { font-size: 15px; color: var(--slate); line-height: 1.65; }
+
+  /* ── FINAL CTA ── */
+  .final-cta { background: var(--amber); padding: 80px 24px; text-align: center; }
+  .final-cta h2 { font-family: 'DM Serif Display', serif; font-size: clamp(28px, 4vw, 44px); color: var(--navy); margin-bottom: 16px; line-height: 1.2; }
+  .final-cta p { font-size: 17px; color: rgba(15,31,61,.7); margin-bottom: 36px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .final-cta .btn-dark { background: var(--navy); color: var(--white); padding: 16px 44px; border-radius: 50px; font-size: 16px; font-weight: 600; text-decoration: none; display: inline-block; box-shadow: 0 6px 24px rgba(15,31,61,.3); }
+
+  /* ── FOOTER ── */
+  footer { background: var(--navy); padding: 28px 24px; text-align: center; }
+  footer p { font-size: 13px; color: rgba(255,255,255,.4); }
+  footer a { color: rgba(255,255,255,.5); text-decoration: none; }
+  footer a:hover { color: var(--white); }
+
+  /* ── FEATURE STRIP ── */
+  .feature-strip { background: var(--light); padding: 48px 24px; }
+  .features-inner { max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 32px; }
+  .feature-item { text-align: center; }
+  .feature-icon { font-size: 28px; margin-bottom: 10px; }
+  .feature-label { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+  .feature-desc { font-size: 13px; color: var(--slate); line-height: 1.5; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); max-width: 1000px; margin: 0 auto; }
+
+  @media (max-width: 640px) {
+    .proof-bar { gap: 24px; }
+    .hero-actions { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-secondary { width: 100%; max-width: 320px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="https://findyourmajor.org" class="nav-logo">Find Your Major<span>.</span> <span class="nav-badge">For Counselors</span></a>
+  <a href="#pricing" class="nav-cta">See pricing</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">College Counselor Platform</div>
+  <h1>Give every student a<br><em>personalized</em> major plan<br>in 3 minutes</h1>
+  <p class="hero-sub">AI-powered major recommendations, white-labeled reports, and a simple student dashboard — built for counselors who want to spend less time on intake and more time on real conversations.</p>
+  <div class="hero-actions">
+    <a href="/counselors/setup" class="btn-primary">Get my free counselor link →</a>
+    <a href="#how-it-works" class="btn-secondary">See how it works</a>
+  </div>
+  <p class="hero-note">No credit card required · Setup in under 5 minutes · Cancel anytime</p>
+</div>
+
+<!-- PROOF BAR -->
+<div class="proof-bar">
+  <div class="proof-item"><div class="proof-num">8</div><div class="proof-label">Quiz questions</div></div>
+  <div class="proof-item"><div class="proof-num">40+</div><div class="proof-label">Majors analyzed</div></div>
+  <div class="proof-item"><div class="proof-num">10</div><div class="proof-label">Report sections</div></div>
+  <div class="proof-item"><div class="proof-num">&lt;60s</div><div class="proof-label">Report delivery</div></div>
+</div>
+
+<!-- PROBLEM -->
+<div class="section">
+  <div class="section-eyebrow">The Problem</div>
+  <h2 class="section-title">Counselors are stretched thin.<br>Students need more than a brochure.</h2>
+  <p class="section-sub">The average school counselor serves 455 students. Meaningful major exploration conversations are rare — not because counselors don't care, but because there aren't enough hours.</p>
+
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-icon">⏱️</div>
+      <h3>Not enough time per student</h3>
+      <p>The average counselor gets 38 minutes per student per year. Major exploration alone could take hours to do properly.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📋</div>
+      <h3>Generic tools give generic results</h3>
+      <p>Most major quizzes return the same 5 suggestions to every student. Parents and students can tell — and they've stopped trusting them.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">👨‍👩‍👧</div>
+      <h3>Parents are left out of the loop</h3>
+      <p>The college decision happens at home. Without a tool parents can engage with, counselors lose influence at the most critical moment.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-icon">📊</div>
+      <h3>No data to track progress</h3>
+      <p>Counselors have no visibility into which students have explored their options and which ones are still undecided heading into senior year.</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="section" id="how-it-works">
+  <div class="section-eyebrow">How It Works</div>
+  <h2 class="section-title">From intake to parent meeting<br>in one workflow</h2>
+  <p class="section-sub">FindYourMajor fits into how you already work — not the other way around.</p>
+
+  <div class="steps-wrap">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>You get a unique counselor link</h3>
+        <p>Sign up and receive your personal link — something like <strong>findyourmajor.org/c/sarahchen</strong>. Share it with students via email, your school website, or Google Classroom. Takes 5 minutes to set up.</p>
+        <span class="step-tag">✓ No IT department required</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Students take the 3-minute AI quiz</h3>
+        <p>8 questions covering interests, work style, values, strengths, and dealbreakers. Claude AI (Anthropic) analyzes the full picture and returns 5 personalized major recommendations — including one surprising wildcard pick.</p>
+        <span class="step-tag">✓ Works on any phone, no app needed</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>You see every student's results in your dashboard</h3>
+        <p>Every student who uses your link appears in your counselor dashboard with their top major matches, fit scores, and key insights. Review results before your meeting so you walk in prepared.</p>
+        <span class="step-tag">✓ Instant — no waiting for reports</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h3>Send parents a white-labeled full report</h3>
+        <p>With one click, generate and send a comprehensive 10-section Parent Report branded with your name and logo. Schools keep 20% of every $9.99 report purchased — parents pay, you earn.</p>
+        <span class="step-tag">✓ Revenue share on every report sold</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURE STRIP -->
+<div class="feature-strip">
+  <div class="features-inner">
+    <div class="feature-item">
+      <div class="feature-icon">🎨</div>
+      <div class="feature-label">Your branding</div>
+      <div class="feature-desc">Reports go out with your logo, name, and colors — not ours</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📲</div>
+      <div class="feature-icon">📊</div>
+      <div class="feature-label">Student dashboard</div>
+      <div class="feature-desc">See all your students' results in one place, updated in real time</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">💰</div>
+      <div class="feature-label">Revenue share</div>
+      <div class="feature-desc">Earn 20% of every Parent Report your students purchase</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">🔒</div>
+      <div class="feature-label">FERPA-friendly</div>
+      <div class="feature-desc">No student data stored beyond 24 hours — privacy by design</div>
+    </div>
+    <div class="feature-item">
+      <div class="feature-icon">📧</div>
+      <div class="feature-label">One-click reports</div>
+      <div class="feature-desc">Generate and send a full 10-section report to any parent instantly</div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT PREVIEW -->
+<div class="section">
+  <div class="section-eyebrow">The Report</div>
+  <h2 class="section-title">A report parents actually read</h2>
+  <p class="section-sub">10 sections of personalized, AI-written guidance. Delivered by email within 60 seconds of purchase. White-labeled with your name.</p>
+
+  <div class="report-wrap">
+    <div class="report-header">
+      <span class="report-logo">Find Your Major<span>.</span></span>
+      <span class="report-tag">Parent Report · Personalized</span>
+    </div>
+    <div class="report-body">
+      <div class="report-section">
+        <div class="rs-label">🎯 Personal Profile</div>
+        <div class="rs-line w90"></div>
+        <div class="rs-line w70"></div>
+        <div class="rs-line w80"></div>
+      </div>
+      <div class="report-section">
+        <div class="rs-label">⭐ Major Matches</div>
+        <div class="major-pill">Behavioral Economics</div>
+        <div class="major-pill">Public Health</div>
+        <div class="major-pill">Org. Psychology</div>
+        <div class="major-pill">✨ Wildcard</div>
+      </div>
+      <div class="report-section">
+        <div class="rs-label">🏫 Recommended Schools</div>
+        <div class="rs-line w80"></div>
+        <div class="rs-line w60"></div>
+        <div class="rs-line w70"></div>
+      </div>
+      <div class="report-section">
+        <div class="rs-label">💰 Salary Deep-Dive</div>
+        <div class="rs-line w90"></div>
+        <div class="rs-line w70"></div>
+        <div class="rs-line w60"></div>
+      </div>
+      <div class="report-section">
+        <div class="rs-label">📅 4-Year Course Path</div>
+        <div class="rs-line w80"></div>
+        <div class="rs-line w90"></div>
+        <div class="rs-line w45"></div>
+      </div>
+      <div class="report-section">
+        <div class="rs-label">🎯 90-Day Action Plan</div>
+        <div class="rs-line w70"></div>
+        <div class="rs-line w80"></div>
+        <div class="rs-line w60"></div>
+      </div>
+    </div>
+    <div class="report-footer">
+      <div class="white-label-badge">✦ White-labeled with your name and logo</div>
+      <p>Report delivered to parent's inbox within 60 seconds of purchase</p>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<div class="section" id="pricing">
+  <div class="section-eyebrow">Pricing</div>
+  <h2 class="section-title">Simple, transparent pricing</h2>
+  <p class="section-sub">Start free. Upgrade when you're ready. Every plan includes the full product — no features locked behind higher tiers.</p>
+
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-tier">Solo Counselor</div>
+      <div class="pricing-price">
+        <span class="pricing-amount">$79</span>
+        <span class="pricing-period">/month</span>
+      </div>
+      <p class="pricing-desc">Perfect for independent college advisors with a focused client list.</p>
+      <ul class="pricing-features">
+        <li>Up to 25 active students</li>
+        <li>White-labeled reports</li>
+        <li>Student results dashboard</li>
+        <li>20% revenue share on reports</li>
+        <li>Your custom counselor link</li>
+        <li>Email support</li>
+      </ul>
+      <a href="#signup" class="pricing-cta light">Start free trial</a>
+      <p class="pricing-annual">Save 20% with annual billing — $758/year</p>
+    </div>
+
+    <div class="pricing-card featured">
+      <div class="pricing-badge">Most popular</div>
+      <div class="pricing-tier">Growing Practice</div>
+      <div class="pricing-price">
+        <span class="pricing-amount">$149</span>
+        <span class="pricing-period">/month</span>
+      </div>
+      <p class="pricing-desc">For counselors and small firms serving a larger student base.</p>
+      <ul class="pricing-features">
+        <li>Up to 75 active students</li>
+        <li>White-labeled reports</li>
+        <li>Student results dashboard</li>
+        <li>20% revenue share on reports</li>
+        <li>Custom branding (logo + colors)</li>
+        <li>Priority email support</li>
+        <li>Monthly earnings report</li>
+      </ul>
+      <a href="#signup" class="pricing-cta dark">Start free trial</a>
+      <p class="pricing-annual">Save 20% with annual billing — $1,430/year</p>
+    </div>
+
+    <div class="pricing-card">
+      <div class="pricing-tier">School / District</div>
+      <div class="pricing-price">
+        <span class="pricing-amount">$299</span>
+        <span class="pricing-period">/month</span>
+      </div>
+      <p class="pricing-desc">For schools, districts, and counseling departments serving hundreds of students.</p>
+      <ul class="pricing-features">
+        <li>Unlimited students</li>
+        <li>White-labeled reports</li>
+        <li>Student results dashboard</li>
+        <li>20% revenue share on reports</li>
+        <li>Full branding customization</li>
+        <li>Dedicated onboarding call</li>
+        <li>Phone + email support</li>
+        <li>Custom subdomain available</li>
+      </ul>
+      <a href="#signup" class="pricing-cta light">Contact us</a>
+      <p class="pricing-annual">Annual contracts available — contact for pricing</p>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div class="testimonials-wrap">
+  <div class="testimonials-inner">
+    <div class="section-eyebrow">What counselors say</div>
+    <h2 class="section-title">Built with counselors, not just for them</h2>
+    <p class="section-sub">Early feedback from counselors who tested the platform before launch.</p>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"The wildcard major recommendation alone starts more productive conversations than anything I've tried before. Students are genuinely surprised — and surprise creates curiosity."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MR</div>
+          <div>
+            <div class="testimonial-name">Maria R.</div>
+            <div class="testimonial-role">School Counselor · 12 years experience</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"I used to spend 45 minutes in each intake just figuring out what a student was interested in. Now I spend that time on the real conversation — because the AI already did the groundwork."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">DK</div>
+          <div>
+            <div class="testimonial-name">David K.</div>
+            <div class="testimonial-role">Independent College Advisor</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <p class="testimonial-quote">"Parents love the report. It's the first time I've had something to send home after a meeting that parents actually bring back to the next appointment with notes on it."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">SC</div>
+          <div>
+            <div class="testimonial-name">Sandra C.</div>
+            <div class="testimonial-role">College Prep Coordinator</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="section">
+  <div class="section-eyebrow">FAQ</div>
+  <h2 class="section-title">Common questions</h2>
+
+  <div class="faq-list">
+    <div class="faq-item">
+      <p class="faq-q">How is this different from other major quizzes?</p>
+      <p class="faq-a">Most major quizzes use simple category matching — they ask a few questions and return the same 5 answers to every creative student or every analytical student. FindYourMajor uses Claude AI (Anthropic) to analyze the full combination of a student's interests, work style, values, strengths, and dealbreakers simultaneously. The result is genuinely personalized — including a wildcard pick the student almost never expected.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">What data is stored about my students?</p>
+      <p class="faq-a">Quiz answers are stored temporarily (maximum 24 hours) to generate the Parent Report if one is purchased, then permanently deleted. We do not store student names, emails, or any personally identifiable information. Students can take the quiz anonymously. This design makes the platform FERPA-friendly by default.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">How does the revenue share work?</p>
+      <p class="faq-a">When a student shares their results with a parent through your counselor link, the parent can purchase a full 10-section Parent Report for $9.99. You receive 20% ($2.00) of every report purchased through your link, paid monthly via Stripe. There's no limit on earnings — the more students who use your link, the more you earn.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Can I try it before committing to a plan?</p>
+      <p class="faq-a">Yes. Every plan includes a 30-day free trial with full access to all features. No credit card required to start. If you decide it's not right for your practice, just cancel — no questions asked.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">How does white-labeling work?</p>
+      <p class="faq-a">On the Growing Practice and School plans, you can upload your logo and set your practice name. Parent Reports sent through your account will display your branding — not FindYourMajor's. Students using your link see a co-branded experience. Your custom counselor link (findyourmajor.org/c/yourname) is included on all plans.</p>
+    </div>
+    <div class="faq-item">
+      <p class="faq-q">Does this work for independent college advisors or just school counselors?</p>
+      <p class="faq-a">Both. Independent advisors often find the most value because they can offer white-labeled reports as part of their client packages — adding a professional deliverable without adding hours of work. School counselors benefit most from the student dashboard and the ability to scale intake across hundreds of students.</p>
+    </div>
+  </div>
+</div>
+
+<!-- FINAL CTA -->
+<div class="final-cta" id="signup">
+  <h2>Ready to give every student<br>a real starting point?</h2>
+  <p>Set up your free personalized counselor link in 30 seconds — or contact us about a paid plan for your school or practice.</p>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <a href="/counselors/setup" class="btn-dark">Set up my free link →</a>
+    <a href="mailto:hello@findyourmajor.org?subject=Counselor Platform — Early Access&body=Hi, I'm interested in the FindYourMajor counselor platform. Here's a bit about my practice:" style="background:transparent;color:var(--navy);border:2px solid var(--navy);padding:16px 36px;border-radius:50px;font-size:16px;font-weight:600;text-decoration:none;display:inline-block;">Contact us about plans</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>
+    <a href="https://findyourmajor.org">FindYourMajor.org</a> &nbsp;·&nbsp;
+    <a href="https://findyourmajor.org/privacy">Privacy</a> &nbsp;·&nbsp;
+    <a href="https://findyourmajor.org/terms">Terms</a> &nbsp;·&nbsp;
+    <a href="mailto:hello@findyourmajor.org">hello@findyourmajor.org</a>
+  </p>
+</footer>
+
+</body>
+</html>

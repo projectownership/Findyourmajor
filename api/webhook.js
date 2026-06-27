@@ -82,10 +82,27 @@ export default async function handler(req, res) {
       const kvJson = await kvRes.json();
       if (kvJson.result) {
         quizData = JSON.parse(kvJson.result);
-        console.log("Quiz data retrieved, majors:", quizData?.results?.length);
+        console.log("Quiz data retrieved, majors:", quizData?.results?.length, "refCode:", quizData?.refCode || "none");
       }
     } catch (err) {
       console.warn("KV lookup failed:", err.message);
+    }
+  }
+
+  // Fetch counselor profile for white-label branding (if referred)
+  let counselorProfile = null;
+  if (quizData?.refCode && kvUrl && kvToken) {
+    try {
+      const cpRes  = await fetch(`${kvUrl}/get/counselor:${quizData.refCode.toLowerCase()}`, {
+        headers: { Authorization: `Bearer ${kvToken}` },
+      });
+      const cpJson = await cpRes.json();
+      if (cpJson.result) {
+        counselorProfile = JSON.parse(cpJson.result);
+        console.log("Counselor profile loaded:", counselorProfile.name, "/", counselorProfile.school);
+      }
+    } catch (err) {
+      console.warn("Counselor profile lookup failed:", err.message);
     }
   }
 
@@ -102,7 +119,7 @@ export default async function handler(req, res) {
   // Send email via Resend
   try {
     const firstName = customerName.split(" ")[0];
-    const html      = buildEmail(firstName, sections, quizData);
+    const html      = buildEmail(firstName, sections, quizData, counselorProfile);
     const fromAddr  = process.env.RESEND_FROM || "Find Your Major <onboarding@resend.dev>";
 
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -114,7 +131,11 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from:    fromAddr,
         to:      [customerEmail],
-        subject: `Your Find Your Major Parent Report is ready, ${firstName}!`,
+        subject: counselorProfile?.name
+          ? `Your Find Your Major Parent Report is ready, ${firstName}! (from ${counselorProfile.name})`
+          : quizData?.refCode
+            ? `Your Find Your Major Parent Report is ready, ${firstName}!`
+            : `Your Find Your Major Parent Report is ready, ${firstName}!`,
         html,
       }),
     });
@@ -173,54 +194,78 @@ Write 3-4 sentences describing what this student's major matches reveal about th
 
 SECTION 2 — YOUR #1 MAJOR: ${top1 ? top1.name : "Top Recommendation"}
 Write 4-5 sentences covering:
-- What a typical day looks like in this career
-- The type of person who thrives (specific personality traits)
-- One fact most students don't know about this field
-- Why the job market is strong (or any caveats)
+- What a typical workday looks like in this field — be specific and vivid
+- The type of person who thrives (3 specific personality traits)
+- One surprising fact most students don't know about this field
+- Why the job market is strong right now, with one specific growing sector hiring in this field
 
 SECTION 3 — ALL 5 MAJORS AT A GLANCE
-For each of the 5 recommended majors, write 2-3 sentences explaining the unique fit for this student and what makes it worth exploring. Don't just repeat the why — add something new about each one.
+For each of the 5 recommended majors write 2-3 sentences covering:
+- What makes this major a unique fit for this specific student
+- One career path from this major most people overlook
+- One real company or industry actively hiring from this major right now
 
 SECTION 4 — ${wildcard ? `WILDCARD SPOTLIGHT: ${wildcard.name}` : "HIDDEN GEM MAJOR"}
-Write 3-4 sentences about why this surprising pick actually makes perfect sense for this student. Help the parent understand why the AI recommended something unexpected. Make it feel exciting rather than confusing.
+Write 4 sentences covering:
+- Why this surprising pick makes sense for this specific student
+- What a career in this field actually looks like day to day
+- One company type or industry that loves hiring from this major
+- Why a student who picks this stands out from the crowd
 
 SECTION 5 — RECOMMENDED SCHOOLS
 For the top 2 majors, list 3 schools each:
 - One budget-friendly / state school option
-- One mid-range private option  
+- One mid-range private option
 - One highly-ranked program option
-Include 1 sentence about what makes each program notable.
+For each school include: what makes the program notable AND one specific advantage (location, co-op program, industry connections, research opportunities).
 
-SECTION 6 — SALARY DEEP-DIVE
-For the top 3 majors, provide:
-- Entry-level salary range (0-3 years experience)
-- Mid-career salary range (5-10 years)
-- Senior/peak salary range
-- One specific high-paying career path in the field
-- Geographic note (where salaries are highest)
+SECTION 6 — CAREER & SALARY DEEP-DIVE
+For the top 3 majors provide a complete career picture:
+- Entry-level salary range (0-3 years) with a specific entry-level job title
+- Mid-career salary range (5-10 years) with a specific mid-level job title
+- Senior/peak salary range with a specific senior job title
+- Top 3 companies or employers known for hiring from this major (be specific — name real companies)
+- The single highest-paying career path available from this major
+- Where salaries are highest geographically (top 2-3 cities or regions)
+- One emerging career path in this field that didn't exist 10 years ago
 
 SECTION 7 — 4-YEAR COURSE PATH
-For the #1 recommended major, outline a realistic 4-year college path:
-- Year 1: Foundation courses (list 3-4 typical courses)
-- Year 2: Core major courses (list 3-4 typical courses)
-- Year 3: Specialization + internship (list 2-3 courses + internship note)
-- Year 4: Capstone/advanced work + job prep
+For the #1 recommended major outline a realistic 4-year path:
+- Year 1: Foundation (list 4 typical courses with 1-sentence descriptions)
+- Year 2: Core major courses (list 4 typical courses with 1-sentence descriptions)
+- Year 3: Specialization + internship (list 3 courses + specific internship advice — what companies to target, what to look for)
+- Year 4: Capstone/advanced work + job prep (what the senior experience looks like, how to land the first job)
+Also include: one professional certification or skill that significantly boosts employability from this major
 
 SECTION 8 — PARENT CONVERSATION GUIDE
-Write 5 specific, thoughtful questions parents can use to explore these majors with their student. Make them open-ended and non-pressuring. Tailor them to what the student's results reveal.
+Write 6 specific, thoughtful questions tailored to what this student's results reveal:
+- 2 questions about the majors themselves
+- 2 questions about career vision and values
+- 2 questions about practical next steps
+Make them open-ended, non-pressuring, and designed to create dialogue not defensiveness.
 
 SECTION 9 — 90-DAY ACTION PLAN
-Write a concrete month-by-month plan:
-Month 1 — Explore: 3 specific free actions (YouTube searches, free courses, people to talk to)
-Month 2 — Engage: 3 actions to go deeper (campus visits, job shadows, clubs to join)
-Month 3 — Decide: 3 actions to narrow down and commit to a direction
+Month 1 — Explore (3 specific free actions):
+- One specific YouTube search term to use
+- One free online course (name the actual course and platform)
+- One specific type of professional to find and talk to (and how to find them)
+
+Month 2 — Engage (3 deeper actions):
+- One campus visit or virtual tour recommendation
+- One specific club, organization, or extracurricular to join or explore
+- One job shadow or informational interview target (specific industry or company type)
+
+Month 3 — Decide (3 commitment actions):
+- One way to test the major before committing (summer program, online class, project)
+- One concrete college application action (research specific program, contact admissions)
+- One family decision conversation to have (with suggested talking points)
 
 SECTION 10 — CLOSING NOTE
-Write 2-3 warm sentences of encouragement for the parent. Remind them that most students change their major and that's okay — this report is a starting point, not a life sentence.
+Write 3 warm, specific sentences of encouragement. Reference something specific from the student's results. Remind the parent that exploration is the goal right now — not a final answer.
 
 ---
 
-Format each section with its title in ALL CAPS on its own line, followed by the content. Keep the tone warm, professional, and encouraging throughout. Total length: 900-1200 words.`;
+Format each section with its title in ALL CAPS on its own line, followed by the content. Be specific throughout — name real companies, real courses, real job titles. Avoid generic advice. Keep the tone warm, professional, and encouraging. Total length: 1100-1500 words.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -230,8 +275,8 @@ Format each section with its title in ALL CAPS on its own line, followed by the 
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2500,
+      model: "claude-opus-4-8",
+      max_tokens: 3500,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -280,7 +325,7 @@ function buildFallbackSections(quizData) {
 
 // ─── Email builder ────────────────────────────────────────────────────────────
 
-function buildEmail(firstName, sections, quizData) {
+function buildEmail(firstName, sections, quizData, counselorProfile) {
   const results  = quizData?.results || [];
   const NAVY     = "#0F1F3D";
   const AMBER    = "#F5A623";
@@ -412,6 +457,11 @@ function buildEmail(firstName, sections, quizData) {
 
     <!-- Footer -->
     <div style="border-top:1px solid #e2e8f0;padding-top:20px;text-align:center;">
+      ${counselorProfile?.name ? `
+      <div style="background:#EEF2FF;border-radius:10px;padding:12px 16px;margin-bottom:16px;display:inline-block;text-align:left;">
+        <span style="font-size:12px;color:#4338CA;font-weight:700;">🎓 Shared by ${counselorProfile.name}${counselorProfile.title ? ` · ${counselorProfile.title}` : ""}${counselorProfile.school ? `<br><span style="font-weight:400;color:#6366F1;">${counselorProfile.school}</span>` : ""}</span>
+      </div>
+      ` : quizData?.refCode ? `<p style="font-size:12px;color:#6366F1;margin-bottom:12px;">🎓 Shared by your counselor</p>` : ""}
       <p style="font-size:12px;color:#94a3b8;line-height:1.6;margin:0;">
         This report is for informational and educational purposes only. It is not professional academic or career counselling.<br>
         <a href="https://findyourmajor.org" style="color:#6b7a99;">findyourmajor.org</a> &nbsp;|&nbsp;

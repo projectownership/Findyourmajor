@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Set Up Your Counselor Link — Find Your Major</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy:   #0F1F3D;
+    --amber:  #F5A623;
+    --cream:  #FAFAF7;
+    --slate:  #6B7A99;
+    --light:  #F0F4FA;
+    --border: #E2E8F0;
+    --indigo: #6366F1;
+    --indigo-l: #EEF2FF;
+    --white:  #FFFFFF;
+    --green:  #22C55E;
+    --red:    #EF4444;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--cream); color: var(--navy); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  nav {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250,250,247,.95); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-logo { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 16px; color: var(--navy); text-decoration: none; }
+  .nav-logo span { color: var(--amber); }
+  .nav-badge { background: var(--navy); color: white; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; margin-left: 10px; }
+
+  .container { max-width: 540px; margin: 60px auto; padding: 0 24px 80px; }
+
+  h1 { font-family: 'DM Serif Display', Georgia, serif; font-size: clamp(28px, 5vw, 40px); line-height: 1.15; margin-bottom: 12px; }
+  h1 em { font-style: italic; color: var(--amber); }
+  .subtitle { color: var(--slate); font-size: 16px; margin-bottom: 36px; line-height: 1.65; }
+
+  .card { background: var(--white); border-radius: 16px; padding: 32px; box-shadow: 0 2px 20px rgba(15,31,61,.07); border: 1px solid var(--border); }
+
+  .field { margin-bottom: 20px; }
+  label { display: block; font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  label .hint { font-weight: 400; color: var(--slate); font-size: 12px; margin-left: 6px; }
+  input[type="text"], input[type="email"] {
+    width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+    border-radius: 10px; font-size: 15px; font-family: inherit; color: var(--navy);
+    background: var(--cream); transition: border-color .15s;
+    outline: none;
+  }
+  input[type="text"]:focus, input[type="email"]:focus { border-color: var(--indigo); background: white; }
+  input.error { border-color: var(--red); }
+
+  .ref-row { display: flex; align-items: center; gap: 0; }
+  .ref-prefix {
+    background: var(--light); border: 1.5px solid var(--border); border-right: none;
+    border-radius: 10px 0 0 10px; padding: 11px 12px; font-size: 14px; color: var(--slate);
+    white-space: nowrap; font-weight: 500;
+  }
+  .ref-row input {
+    border-radius: 0 10px 10px 0; border-left: none;
+    border-left: 1px solid var(--border);
+  }
+  .ref-row input:focus { border-color: var(--indigo); }
+
+  .preview {
+    background: var(--indigo-l); border: 1px solid #C7D2FE;
+    border-radius: 10px; padding: 12px 16px; margin-top: 8px;
+    font-size: 13px; color: #4338CA; font-weight: 600; display: none;
+    align-items: center; gap: 10px;
+  }
+  .preview.visible { display: flex; }
+
+  .btn {
+    width: 100%; padding: 16px; border: none; border-radius: 50px;
+    font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 8px;
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+  }
+  .btn-primary { background: var(--navy); color: white; box-shadow: 0 4px 20px rgba(15,31,61,.25); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(15,31,61,.3); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+  .success { display: none; text-align: center; padding: 24px 0; }
+  .success.visible { display: block; }
+  .success-icon { font-size: 48px; margin-bottom: 16px; }
+  .success h2 { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 12px; }
+  .success p { color: var(--slate); font-size: 15px; margin-bottom: 20px; line-height: 1.65; }
+
+  .link-box {
+    background: var(--light); border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 14px 16px; display: flex; align-items: center; gap: 12; margin-bottom: 24px;
+  }
+  .link-url { flex: 1; font-size: 14px; font-weight: 600; color: var(--indigo); word-break: break-all; }
+  .copy-btn {
+    background: var(--navy); color: white; border: none; padding: 8px 18px;
+    border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer;
+    white-space: nowrap; transition: opacity .15s;
+  }
+  .copy-btn:hover { opacity: .8; }
+
+  .tip {
+    background: #FEFCE8; border: 1px solid #FEF08A; border-radius: 10px;
+    padding: 14px 16px; margin-top: 24px; font-size: 13px; color: #713F12; line-height: 1.6;
+  }
+  .tip strong { display: block; margin-bottom: 4px; }
+
+  .error-msg { color: var(--red); font-size: 13px; margin-top: 6px; display: none; }
+  .error-msg.visible { display: block; }
+
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">Find Your Major <span>✦</span></a>
+  <span class="nav-badge">For Counselors</span>
+</nav>
+
+<div class="container">
+  <h1>Set up your <em>personalized</em> counselor link</h1>
+  <p class="subtitle">Students who take the quiz through your link will see your name and school on their results page — and in the Parent Report email. Takes 30 seconds.</p>
+
+  <div class="card" id="form-card">
+    <div class="field">
+      <label>Your Name <span class="hint">shown to students</span></label>
+      <input type="text" id="name" placeholder="Sarah Chen" autocomplete="name" />
+      <div class="error-msg" id="name-err">Please enter your name.</div>
+    </div>
+
+    <div class="field">
+      <label>Title <span class="hint">optional</span></label>
+      <input type="text" id="title" placeholder="College Counselor" />
+    </div>
+
+    <div class="field">
+      <label>School or Organization <span class="hint">optional</span></label>
+      <input type="text" id="school" placeholder="Westview High School" />
+    </div>
+
+    <div class="field">
+      <label>Your Email <span class="hint">private, not shown to students</span></label>
+      <input type="email" id="email" placeholder="sarah@westviewhs.edu" autocomplete="email" />
+    </div>
+
+    <div class="field">
+      <label>Choose your link ID <span class="hint">letters, numbers, hyphens only</span></label>
+      <div class="ref-row">
+        <div class="ref-prefix">findyourmajor.org/quiz?ref=</div>
+        <input type="text" id="refCode" placeholder="sarahchen" autocomplete="off" oninput="updatePreview()" />
+      </div>
+      <div class="error-msg" id="ref-err">Only letters, numbers, and hyphens allowed.</div>
+      <div class="preview" id="preview">
+        <span style="font-size:18px">🎓</span>
+        <span id="preview-text">Shared by Sarah Chen · College Counselor</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="submit-btn" onclick="submitForm()">
+      Create My Counselor Link
+    </button>
+    <div class="error-msg" id="submit-err" style="text-align:center;margin-top:12px;"></div>
+  </div>
+
+  <div class="success" id="success-card">
+    <div class="success-icon">🎉</div>
+    <h2>Your counselor link is ready!</h2>
+    <p>Share this link with your students. They'll see your name on their results — and the Parent Report will mention you by name.</p>
+    <div class="link-box">
+      <div class="link-url" id="result-url"></div>
+      <button class="copy-btn" onclick="copyLink()">Copy</button>
+    </div>
+    <div class="tip">
+      <strong>💡 How to use it</strong>
+      Text or email this link to students before they take the quiz. When they finish, their results page will show "Shared by [your name]" and the Parent Report email will include your name and school.
+    </div>
+    <p style="margin-top:24px; font-size:14px; color:var(--slate);">
+      Questions? Email <a href="mailto:hello@findyourmajor.org" style="color:var(--indigo);">hello@findyourmajor.org</a>
+    </p>
+  </div>
+</div>
+
+<script>
+  function updatePreview() {
+    const ref  = document.getElementById("refCode").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const title = document.getElementById("title").value.trim() || "College Counselor";
+    const school = document.getElementById("school").value.trim();
+    const preview = document.getElementById("preview");
+    const previewText = document.getElementById("preview-text");
+
+    if (ref) {
+      preview.classList.add("visible");
+      previewText.textContent = `Shared by ${name || "Your Name"} · ${title}${school ? " · " + school : ""}`;
+    } else {
+      preview.classList.remove("visible");
+    }
+  }
+
+  document.getElementById("name").addEventListener("input", updatePreview);
+  document.getElementById("title").addEventListener("input", updatePreview);
+  document.getElementById("school").addEventListener("input", updatePreview);
+
+  async function submitForm() {
+    const name    = document.getElementById("name").value.trim();
+    const title   = document.getElementById("title").value.trim();
+    const school  = document.getElementById("school").value.trim();
+    const email   = document.getElementById("email").value.trim();
+    const refCode = document.getElementById("refCode").value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+    // Validate
+    let valid = true;
+    document.querySelectorAll(".error-msg").forEach(e => e.classList.remove("visible"));
+    document.querySelectorAll("input").forEach(e => e.classList.remove("error"));
+
+    if (!name) {
+      document.getElementById("name-err").classList.add("visible");
+      document.getElementById("name").classList.add("error");
+      valid = false;
+    }
+    if (!refCode) {
+      document.getElementById("ref-err").textContent = "Please choose a link ID.";
+      document.getElementById("ref-err").classList.add("visible");
+      document.getElementById("refCode").classList.add("error");
+      valid = false;
+    }
+    if (!valid) return;
+
+    const btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Creating your link…';
+
+    try {
+      const res = await fetch("/api/counselor-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refCode, name, title, school, email }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      // Success
+      const url = `https://findyourmajor.org/quiz?ref=${data.profile.refCode}`;
+      document.getElementById("result-url").textContent = url;
+      document.getElementById("form-card").style.display = "none";
+      document.getElementById("success-card").classList.add("visible");
+      window._counselorLink = url;
+
+    } catch (err) {
+      const errEl = document.getElementById("submit-err");
+      errEl.textContent = err.message || "Something went wrong. Please try again.";
+      errEl.classList.add("visible");
+      btn.disabled = false;
+      btn.innerHTML = "Create My Counselor Link";
+    }
+  }
+
+  function copyLink() {
+    const url = window._counselorLink || document.getElementById("result-url").textContent;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.querySelector(".copy-btn");
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy", 2000);
+    }).catch(() => {
+      // Fallback: select the text
+      const el = document.getElementById("result-url");
+      const range = document.createRange();
+      range.selectNode(el);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+    });
+  }
+</script>
+
+</body>
+</html>
