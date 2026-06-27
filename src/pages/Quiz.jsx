@@ -579,7 +579,12 @@ export default function Quiz() {
       const res = await fetch('/api/save-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, results, refCode, studentState }),
+        body: JSON.stringify({ answers, results, refCode, studentState: studentState || answers["state"]?.[0] || "" }),
+      });
+      const data = await res.json();
+      sessionId = data.sessionId || '';
+    } catch (err) {
+      console.warn('Could not save answers for share:', err);
     }
     const txt = shareText(results, sessionId);
     if (navigator.share) {
@@ -615,8 +620,10 @@ export default function Quiz() {
 
     // Build a clean payload — split positive preferences from dealbreakers
     // so the backend can treat them differently in the prompt.
-    const positiveQs = QUESTIONS.filter(q => !q.negative);
-    const negativeQs = QUESTIONS.filter(q => q.negative);
+    const positiveQs   = QUESTIONS.filter(q => !q.negative && q.type !== "state");
+    const negativeQs   = QUESTIONS.filter(q => q.negative);
+    // Capture state from answers if not already set via dropdown
+    const resolvedState = studentState || answers["state"]?.[0] || "";
 
     const payload = positiveQs.map(q => ({
       question: q.question,
@@ -1116,7 +1123,10 @@ export default function Quiz() {
                     const res = await fetch("/api/save-answers", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ answers, results, refCode, studentState }),
+                      body: JSON.stringify({ answers, results, refCode, studentState: studentState || answers["state"]?.[0] || "" }),
+                    });
+                    const data = await res.json();
+                    const sessionId = data.sessionId || "";
                     // Redirect to Stripe with session ID in the URL so webhook can find answers
                     const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");
