@@ -279,7 +279,7 @@ Write 3 warm, specific sentences of encouragement. Reference something specific 
 
 ---
 
-Format each section with its title in ALL CAPS on its own line, followed by the content. Be specific throughout — name real companies, real courses, real job titles. Avoid generic advice. Keep the tone warm, professional, and encouraging. Total length: 1100-1500 words.`;
+Format each section with its title in ALL CAPS on its own line, followed by the content. Use plain text only — no asterisks, no markdown bold (**), no markdown italic (*). For bullet points use a dash (-) at the start of the line. For sub-headers within sections (like Year 1, Month 1, Entry-level) put them on their own line. Be specific throughout — name real companies, real courses, real job titles. Avoid generic advice. Keep the tone warm, professional, and encouraging. Total length: 1100-1500 words.`;
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -364,24 +364,74 @@ function buildEmail(firstName, sections, quizData, counselorProfile, sessionId) 
   `).join("");
 
   // Convert sections object to HTML blocks
+  function mdToHtml(text) {
+    return text
+      // **bold** → <strong>
+      .replace(/\*\*(.+?)\*\*/g, `<strong style="color:${NAVY};">$1</strong>`)
+      // *italic* or _italic_ → remove markers, just show plain (avoid stray asterisks)
+      .replace(/\*(.+?)\*/g, "$1")
+      .replace(/_(.+?)_/g, "$1")
+      // ### headings → bold line
+      .replace(/^###\s+(.+)$/gm, `<strong style="color:${NAVY};font-size:14px;">$1</strong>`)
+      .replace(/^##\s+(.+)$/gm,  `<strong style="color:${NAVY};font-size:15px;">$1</strong>`)
+      .replace(/^#\s+(.+)$/gm,   `<strong style="color:${NAVY};font-size:16px;">$1</strong>`);
+  }
+
   function sectionHTML(key, icon, title, fallback) {
     const content = Object.entries(sections).find(([k]) => k.includes(key))?.[1] || fallback || "";
     if (!content) return "";
-    const formatted = content
-      .split("\n\n").filter(p => p.trim())
-      .map(para => {
-        // Convert bullet-like lines
-        if (para.trim().startsWith("-") || para.trim().startsWith("•")) {
-          const items = para.split("\n").filter(l => l.trim());
-          return `<ul style="margin:0 0 12px;padding-left:20px;">${items.map(i => `<li style="color:#374151;font-size:14px;line-height:1.7;margin-bottom:4px;">${i.replace(/^[-•]\s*/,"")}</li>`).join("")}</ul>`;
+
+    // Split into paragraphs/blocks on blank lines
+    const blocks = content.split(/\n{2,}/).filter(p => p.trim());
+
+    const formatted = blocks.map(block => {
+      const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+
+      // Bullet block: lines starting with -, •, or *
+      const isBulletBlock = lines.every(l => /^[-•*]\s/.test(l));
+      if (isBulletBlock) {
+        const items = lines.map(l => l.replace(/^[-•*]\s+/, ""));
+        return `<ul style="margin:0 0 14px;padding-left:20px;">${
+          items.map(i => `<li style="color:#374151;font-size:14px;line-height:1.75;margin-bottom:5px;">${mdToHtml(i)}</li>`).join("")
+        }</ul>`;
+      }
+
+      // Mixed block: some bullet lines, some not — render line by line
+      const hasBullets = lines.some(l => /^[-•*]\s/.test(l));
+      if (hasBullets) {
+        let html = "";
+        let listItems = [];
+        const flushList = () => {
+          if (listItems.length) {
+            html += `<ul style="margin:0 0 10px;padding-left:20px;">${listItems.map(i => `<li style="color:#374151;font-size:14px;line-height:1.75;margin-bottom:4px;">${mdToHtml(i)}</li>`).join("")}</ul>`;
+            listItems = [];
+          }
+        };
+        for (const line of lines) {
+          if (/^[-•*]\s/.test(line)) {
+            listItems.push(line.replace(/^[-•*]\s+/, ""));
+          } else {
+            flushList();
+            html += `<p style="color:#374151;font-size:14px;line-height:1.75;margin:0 0 8px;">${mdToHtml(line)}</p>`;
+          }
         }
-        // Bold lines that look like sub-headers
-        if (para.trim().match(/^(Year [1-4]|Month [1-3]|Entry|Mid|Senior)/)) {
-          const [head, ...rest] = para.split("\n");
-          return `<p style="margin:0 0 6px;"><strong style="color:${NAVY};font-size:14px;">${head}</strong>${rest.length ? `<br><span style="color:#374151;font-size:14px;line-height:1.7;">${rest.join("<br>")}</span>` : ""}</p>`;
-        }
-        return `<p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 12px;">${para.replace(/\n/g,"<br>")}</p>`;
-      }).join("");
+        flushList();
+        return html;
+      }
+
+      // Sub-header block (Year 1, Month 1, Entry-level, etc.)
+      if (lines[0].match(/^(Year [1-4]|Month [1-3]|Entry|Mid-career|Mid career|Senior|Peak)/i)) {
+        const [head, ...rest] = lines;
+        return `<div style="margin-bottom:14px;">
+          <p style="margin:0 0 4px;"><strong style="color:${NAVY};font-size:14px;">${mdToHtml(head)}</strong></p>
+          ${rest.length ? `<p style="color:#374151;font-size:14px;line-height:1.75;margin:0;">${rest.map(l => mdToHtml(l)).join("<br>")}</p>` : ""}
+        </div>`;
+      }
+
+      // Plain paragraph — join lines with spaces (not <br>)
+      return `<p style="color:#374151;font-size:14px;line-height:1.75;margin:0 0 14px;">${lines.map(l => mdToHtml(l)).join(" ")}</p>`;
+    }).join("");
+
     return `
       <div style="margin-bottom:24px;">
         <div style="background:${NAVY};border-radius:8px 8px 0 0;padding:10px 18px;display:flex;align-items:center;gap:8px;">
