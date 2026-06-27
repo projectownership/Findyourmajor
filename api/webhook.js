@@ -119,7 +119,7 @@ export default async function handler(req, res) {
   // Send email via Resend
   try {
     const firstName = customerName.split(" ")[0];
-    const html      = buildEmail(firstName, sections, quizData, counselorProfile);
+    const html      = buildEmail(firstName, sections, quizData, counselorProfile, sessionId);
     const fromAddr  = process.env.RESEND_FROM || "Find Your Major <onboarding@resend.dev>";
 
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -147,7 +147,21 @@ export default async function handler(req, res) {
     console.error("Email send failed:", err.message);
   }
 
-  // Clean up KV
+  // Save results permanently for the email deep-link (30 days)
+  if (sessionId && sessionId !== "no-kv" && kvUrl && kvToken && quizData?.results) {
+    const reportPayload = JSON.stringify({
+      results: quizData.results,
+      refCode: quizData.refCode || "",
+      savedAt: Date.now(),
+    });
+    fetch(`${kvUrl}/set/report:${sessionId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ value: reportPayload, ex: 60 * 60 * 24 * 30 }), // 30 days
+    }).catch(() => {});
+  }
+
+  // Clean up temp session KV
   if (sessionId && sessionId !== "no-kv" && kvUrl && kvToken) {
     fetch(`${kvUrl}/del/session:${sessionId}`, {
       method: "POST",
@@ -325,7 +339,7 @@ function buildFallbackSections(quizData) {
 
 // ─── Email builder ────────────────────────────────────────────────────────────
 
-function buildEmail(firstName, sections, quizData, counselorProfile) {
+function buildEmail(firstName, sections, quizData, counselorProfile, sessionId) {
   const results  = quizData?.results || [];
   const NAVY     = "#0F1F3D";
   const AMBER    = "#F5A623";
@@ -412,6 +426,12 @@ function buildEmail(firstName, sections, quizData, counselorProfile) {
       </div>
       <div style="background:${LIGHT};border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:16px;">
         ${majorCards || '<p style="color:#6b7280;font-size:14px;">Visit findyourmajor.org to see your full results.</p>'}
+        ${sessionId && sessionId !== "no-kv" ? `
+        <div style="text-align:center;margin-top:16px;">
+          <a href="https://findyourmajor.org/results?id=${sessionId}" style="background:#0F1F3D;color:#ffffff;padding:11px 28px;border-radius:50px;font-size:13px;font-weight:700;text-decoration:none;display:inline-block;">
+            View your full results online →
+          </a>
+        </div>` : ""}
       </div>
     </div>
 
