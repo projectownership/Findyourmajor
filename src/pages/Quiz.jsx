@@ -134,6 +134,12 @@ const QUESTIONS = [
       { label: "Remote work with no set schedule", icon: "🏠" },
     ],
   },
+  {
+    id: "state",
+    question: "What state do you live in?",
+    subtitle: "This helps us recommend the best in-state schools for you — which are often significantly more affordable than out-of-state options.",
+    type: "state",
+  },
 ];
 
 // ─── Affiliate / partner config ───────────────────────────────────────────────
@@ -512,7 +518,8 @@ export default function Quiz() {
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: "" });
-  const [studentName, setStudentName]       = useState("");
+  const [studentName, setStudentName]   = useState("");
+  const [studentState, setStudentState] = useState("");
   const [refCode, setRefCode] = useState("");
   const [counselorProfile, setCounselorProfile] = useState(null);
   const topRef = useRef(null);
@@ -552,7 +559,9 @@ export default function Quiz() {
     }
   }
 
-  const canAdvance = (answers[q?.id] || []).length > 0;
+  const canAdvance = q?.type === "state"
+    ? (studentState !== "")
+    : (answers[q?.id] || []).length > 0;
 
   function saveResults() {
     try {
@@ -570,12 +579,7 @@ export default function Quiz() {
       const res = await fetch('/api/save-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, results, refCode }),
-      });
-      const data = await res.json();
-      sessionId = data.sessionId || '';
-    } catch (err) {
-      console.warn('Could not save answers for share:', err);
+        body: JSON.stringify({ answers, results, refCode, studentState }),
     }
     const txt = shareText(results, sessionId);
     if (navigator.share) {
@@ -808,7 +812,48 @@ export default function Quiz() {
             </h2>
             <p style={{ fontSize: mobile ? 14 : 15, color: SLATE, marginBottom: mobile ? 20 : 26 }}>{q.subtitle}</p>
 
-            {/* Options — single column on mobile, 2-col on desktop */}
+            {/* Options — state dropdown or button grid */}
+            {q.type === "state" ? (
+              <div>
+                <div style={{ background: "#EEF2FF", border: "1px solid #C7D2FE", borderRadius: 12, padding: "12px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>🏫</span>
+                  <p style={{ fontSize: 13, color: "#4338CA", fontWeight: 600, lineHeight: 1.5, margin: 0 }}>
+                    Your state helps us recommend in-state schools — which can save you $20,000+ per year compared to out-of-state tuition.
+                  </p>
+                </div>
+                <select
+                  value={studentState}
+                  onChange={e => setStudentState(e.target.value)}
+                  style={{
+                    width: "100%", padding: "14px 16px", fontSize: 16,
+                    border: `2px solid ${studentState ? AMBER : "#E2E8F0"}`,
+                    borderRadius: 12, background: studentState ? AMBER_L : WHITE,
+                    color: studentState ? NAVY : "#94A3B8",
+                    fontWeight: studentState ? 700 : 400,
+                    appearance: "none", WebkitAppearance: "none",
+                    cursor: "pointer", outline: "none",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B7A99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 16px center",
+                    paddingRight: 40,
+                  }}
+                >
+                  <option value="">Select your state...</option>
+                  {["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"].map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+                <p style={{ fontSize: 12, color: SLATE, marginTop: 10, textAlign: "center" }}>
+                  You can skip this — but we won't be able to include in-state school recommendations.
+                </p>
+                <button
+                  onClick={() => setStudentState("skip")}
+                  style={{ background: "none", border: "none", color: SLATE, fontSize: 13, cursor: "pointer", display: "block", margin: "4px auto 0", textDecoration: "underline" }}
+                >
+                  Skip this question
+                </button>
+              </div>
+            ) : (
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "repeat(2,1fr)", gap: mobile ? 10 : 12 }}>
               {q.options.map(opt => {
                 const sel = selected.includes(opt.label);
@@ -844,6 +889,7 @@ export default function Quiz() {
                 );
               })}
             </div>
+            )}
 
             {error && (
               <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 12, padding: "16px 18px", marginTop: 16, color: "#DC2626", fontSize: 14, lineHeight: 1.6 }}>
@@ -1070,10 +1116,7 @@ export default function Quiz() {
                     const res = await fetch("/api/save-answers", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ answers, results, refCode }),
-                    });
-                    const data = await res.json();
-                    const sessionId = data.sessionId || "";
+                      body: JSON.stringify({ answers, results, refCode, studentState }),
                     // Redirect to Stripe with session ID in the URL so webhook can find answers
                     const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");

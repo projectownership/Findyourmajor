@@ -177,9 +177,10 @@ export default async function handler(req, res) {
 async function generateFullReport(quizData, apiKey) {
   if (!apiKey) throw new Error("No Anthropic API key");
 
-  const results    = quizData?.results || [];
-  const answers    = quizData?.answers || {};
-  const hasResults = results.length > 0;
+  const results      = quizData?.results || [];
+  const answers      = quizData?.answers || {};
+  const hasResults   = results.length > 0;
+  const studentState = (quizData?.studentState && quizData.studentState !== "skip") ? quizData.studentState : null;
 
   // Build rich context from quiz answers + AI results
   const majorContext = hasResults
@@ -227,11 +228,12 @@ Write 4 sentences covering:
 - Why a student who picks this stands out from the crowd
 
 SECTION 5 — RECOMMENDED SCHOOLS
+${studentState ? `The student lives in ${studentState}. Lead with IN-STATE options first — they are often $20,000+ cheaper per year than out-of-state.` : ""}
 For the top 2 majors, list 3 schools each:
-- One budget-friendly / state school option
-- One mid-range private option
-- One highly-ranked program option
-For each school include: what makes the program notable AND one specific advantage (location, co-op program, industry connections, research opportunities).
+${studentState ? `- One strong in-state public university in ${studentState} with a good program for this major (most important — list this first)` : "- One budget-friendly / state school option"}
+- One mid-range private option (any state)
+- One highly-ranked program option (any state)
+For each school include: what makes the program notable AND one specific advantage (location, co-op program, industry connections, research opportunities).${studentState ? ` For the in-state school, also mention the approximate in-state tuition savings compared to out-of-state.` : ""}
 
 SECTION 6 — CAREER & SALARY DEEP-DIVE
 For the top 3 majors provide a complete career picture:
