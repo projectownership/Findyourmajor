@@ -1155,41 +1155,24 @@ export default function Quiz() {
 
         {/* ── Parent Report Upsell ($9.99) ──────────────────────────────────── */}
         <div className="fu" style={{ marginTop: 16, background: `linear-gradient(135deg,${NAVY} 0%,#1a3a6e 100%)`, borderRadius: mobile ? 16 : 18, overflow: "hidden", position: "relative" }}>
-          <div style={{ position: "absolute", top: 16, right: 16, background: AMBER, color: NAVY, fontSize: 10, fontWeight: 900, letterSpacing: "1px", textTransform: "uppercase", padding: "4px 12px", borderRadius: 20, zIndex: 1 }}>Launch Price</div>
-          <div style={{ padding: mobile ? "24px 20px 28px" : "28px 32px 32px", color: WHITE }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", color: AMBER, marginBottom: 10 }}>Full Parent Report — Personalized AI Analysis</div>
-            <h3 style={{ fontSize: mobile ? 21 : 26, fontWeight: 900, letterSpacing: "-.5px", marginBottom: 10, lineHeight: 1.15 }}>
-              Everything you need for the college major conversation<br />
-              <span style={{ color: AMBER }}>$9.99</span>
-              <span style={{ fontSize: mobile ? 13 : 15, fontWeight: 500, color: "rgba(255,255,255,.45)", textDecoration: "line-through", marginLeft: 10 }}>$19.99</span>
+          <div style={{ padding: mobile ? "28px 22px 24px" : "36px 36px 32px", color: WHITE, textAlign: "center" }}>
+
+            {/* Headline */}
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: AMBER, marginBottom: 14 }}>Full Parent Report</div>
+            <h3 style={{ fontFamily: "Georgia, serif", fontSize: mobile ? 26 : 32, fontWeight: 900, lineHeight: 1.25, marginBottom: 16, letterSpacing: "-.3px" }}>
+              Most students pick a major and hope for the best.<br />
+              <em style={{ color: AMBER, fontStyle: "italic" }}>Yours doesn't have to.</em>
             </h3>
-            <p style={{ fontSize: mobile ? 13 : 15, color: "rgba(255,255,255,.72)", lineHeight: 1.65, marginBottom: 20, maxWidth: 500 }}>
-              A detailed, AI-written report based on your student's exact quiz answers. Includes real company names, specific job titles, salary ranges by city, school recommendations, and a 90-day action plan. Delivered to your inbox in under 60 seconds.
+            <p style={{ fontSize: mobile ? 14 : 16, color: "rgba(255,255,255,.75)", lineHeight: 1.7, marginBottom: 28, maxWidth: 440, margin: "0 auto 28px" }}>
+              For $9.99, your student gets a personalized AI report based on their exact quiz answers — salary data, school recommendations, a 4-year course plan, and a parent conversation guide. It's the clearest picture of their future you can get in under 60 seconds.
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 10, marginBottom: 24 }}>
-              {[
-                ["🎯", "Personal profile summary", "What your student's quiz answers reveal about their thinking style and ideal work environment"],
-                ["🔍", "Career deep-dive for your #1 major", "Real job titles, top companies hiring, and an emerging career path that didn't exist 10 years ago"],
-                ["🏫", "Recommended schools", "3 programs per top major — budget-friendly, mid-range, and top-ranked — with what makes each one worth considering"],
-                ["💰", "Full salary breakdown", "Entry → mid → senior pay ranges with specific job titles and the cities where salaries are highest"],
-                ["📅", "4-year course path + internship guide", "Year-by-year courses with descriptions, plus which companies to target for internships"],
-                ["🗣️", "6 conversation questions + 90-day plan", "Tailored questions to open dialogue, plus a month-by-month action plan with specific next steps"],
-              ].map(([icon, title, desc]) => (
-                <div key={title} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: "rgba(255,255,255,.08)", borderRadius: 10, padding: "10px 12px" }}>
-                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{icon}</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: WHITE, marginBottom: 2 }}>{title}</div>
-                    <div style={{ fontSize: 12, color: "rgba(255,255,255,.5)", lineHeight: 1.4 }}>{desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+
+            {/* Price + CTA */}
+            <div style={{ marginBottom: 16 }}>
               <button
                 onClick={async () => {
                   Analytics.affiliateClick("parent_report");
                   try {
-                    // Save quiz answers so we can personalize the report after payment
                     const res = await fetch("/api/save-answers", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1197,7 +1180,6 @@ export default function Quiz() {
                     });
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
-                    // Redirect to Stripe with session ID in the URL so webhook can find answers
                     const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");
                   } catch (err) {
@@ -1205,22 +1187,20 @@ export default function Quiz() {
                     window.open("https://findyourmajor.org/report", "_blank");
                   }
                 }}
-                style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "16px 0" : "15px 40px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 16 : 16, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 20px rgba(245,166,35,.4)", letterSpacing: "-.2px" }}>
+                style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "18px 0" : "18px 52px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 17, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 24px rgba(245,166,35,.45)", letterSpacing: "-.2px" }}>
                 Get the Full Report — $9.99 →
               </button>
+              <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,.4)" }}>
+                <span style={{ textDecoration: "line-through", marginRight: 6 }}>$19.99</span>Launch price · One-time · In your inbox in 60 seconds
+              </div>
             </div>
 
-            {/* ── Money-back guarantee ── */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, padding: "12px 14px", background: "rgba(255,255,255,.06)", borderRadius: 10, border: "1px solid rgba(255,255,255,.1)" }}>
-              <span style={{ fontSize: 20, flexShrink: 0 }}>🛡️</span>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,.6)", lineHeight: 1.5, margin: 0 }}>
-                <strong style={{ color: WHITE, fontWeight: 700 }}>7-day money-back guarantee.</strong> Not what you expected? Email <a href="mailto:hello@findyourmajor.org" style={{ color: AMBER, textDecoration: "none" }}>hello@findyourmajor.org</a> within 7 days for a full refund — no questions asked.
-              </p>
+            {/* Money-back guarantee */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 18, fontSize: 12, color: "rgba(255,255,255,.5)" }}>
+              <span>🛡️</span>
+              <span>7-day money-back guarantee — no questions asked</span>
             </div>
 
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,.3)", marginTop: 14, lineHeight: 1.5 }}>
-              One-time payment · No subscription · Emailed within 60 seconds of purchase · Secure checkout via Stripe
-            </p>
           </div>
         </div>
 
