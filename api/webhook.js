@@ -64,8 +64,29 @@ export default async function handler(req, res) {
   const customerEmail = session.customer_details?.email;
   const customerName  = session.customer_details?.name || "there";
   const sessionId     = session.client_reference_id || session.metadata?.sessionId;
+  const stripeEventId = session.id; // unique per Stripe checkout session
 
-  console.log("Payment details:", { customerEmail, customerName, sessionId });
+  console.log("Payment details:", { customerEmail, customerName, sessionId, stripeEventId });
+
+  // ── Idempotency check ────────────────────────────────────────────────────
+  // Stripe retries webhooks if it doesn't get a fast 200. We store the
+  // Stripe session ID in Upstash after processing — if it's already there,
+  // this is a retry and we should skip it.
+  if (stripeEventId && kvUrl && kvToken) {
+    try {
+      const dupeCheck = await fetch(`${kvUrl}/get/processed:${stripeEventId}`, {
+        headers: { Authorization: `Bearer ${kvToken}` },
+      });
+      const dupeData = await dupeCheck.json();
+      if (dupeData.result) {
+        console.log("Duplicate webhook — already processed:", stripeEventId);
+        return res.status(200).json({ received: true, duplicate: true });
+      }
+    } catch (err) {
+      console.warn("Idempotency check failed, proceeding:", err.message);
+    }
+  }
+  // ────────────────────────────────────────────────────────────────────────
 
   if (!customerEmail) {
     console.error("No customer email found");
@@ -143,6 +164,15 @@ export default async function handler(req, res) {
     const emailData = await emailRes.json();
     console.log("Email send result:", emailData);
     if (!emailRes.ok) console.error("Resend error:", emailData);
+
+    // Mark this Stripe session as processed (7-day TTL) to prevent duplicate sends
+    if (stripeEventId && kvUrl && kvToken) {
+      fetch(`${kvUrl}/set/processed:${stripeEventId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ value: "1", ex: 60 * 60 * 24 * 7 }), // 7 days
+      }).catch(() => {});
+    }
   } catch (err) {
     console.error("Email send failed:", err.message);
   }
@@ -181,6 +211,7 @@ async function generateFullReport(quizData, apiKey) {
   const answers      = quizData?.answers || {};
   const hasResults   = results.length > 0;
   const studentState = (quizData?.studentState && quizData.studentState !== "skip") ? quizData.studentState : null;
+  const studentName  = quizData?.studentName || "";
 
   // Build rich context from quiz answers + AI results
   const majorContext = hasResults
@@ -450,22 +481,57 @@ function buildEmail(firstName, sections, quizData, counselorProfile, sessionId) 
 <title>Find Your Major Parent Report</title></head>
 <body style="margin:0;padding:0;background:#f8f9fc;font-family:Arial,sans-serif;">
 
-  <!-- Header -->
-  <div style="background:${NAVY};padding:18px 28px;display:flex;align-items:center;justify-content:space-between;">
-    <span style="font-size:20px;font-weight:900;color:#fff;">Find Your Major<span style="color:${AMBER};">.</span></span>
-    <span style="font-size:12px;color:rgba(255,255,255,0.5);">Full Parent Report</span>
+  <!-- Cover Page -->
+  <div style="background:${NAVY};padding:0;">
+
+    <!-- Logo bar -->
+    <div style="padding:18px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08);">
+      <span style="font-size:20px;font-weight:900;color:#fff;">Find Your Major<span style="color:${AMBER};">.</span></span>
+      <span style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Parent Report</span>
+    </div>
+
+    <!-- Cover hero -->
+    <div style="padding:40px 28px 36px;text-align:center;">
+      <div style="display:inline-block;background:rgba(245,166,35,.15);border:1px solid rgba(245,166,35,.3);border-radius:20px;padding:5px 16px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${AMBER};margin-bottom:20px;">
+        Prepared Exclusively For You
+      </div>
+      <h1 style="font-family:Georgia,serif;font-size:32px;font-weight:900;color:#fff;margin:0 0 6px;line-height:1.1;">
+        ${studentName ? `${studentName}'s` : `${firstName}'s Student's`}<br>College Major Report
+      </h1>
+      <p style="color:rgba(255,255,255,.45);font-size:13px;margin:0 0 28px;">
+        Generated ${new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})} &nbsp;·&nbsp; Personalized to your student's quiz answers
+      </p>
+
+      <!-- Top major highlight -->
+      ${top1 ? `
+      <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:18px 20px;display:inline-block;text-align:center;min-width:260px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${AMBER};margin-bottom:8px;">Top Major Match</div>
+        <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;">${top1.name}</div>
+        <div style="display:inline-block;background:${AMBER};color:${NAVY};font-size:13px;font-weight:800;padding:4px 14px;border-radius:20px;">${top1.fitScore}% fit</div>
+      </div>` : ""}
+
+      <!-- Report stats -->
+      <div style="display:flex;justify-content:center;gap:28px;margin-top:28px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:${AMBER};">10</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Report sections</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:${AMBER};">5</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Majors analyzed</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:22px;font-weight:900;color:${AMBER};">AI</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;">Personalized</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="height:4px;background:linear-gradient(90deg,${AMBER},#f59e0b,${AMBER});"></div>
   </div>
 
   <div style="max-width:620px;margin:0 auto;padding:28px 16px 60px;">
-
-    <!-- Hero -->
-    <div style="background:linear-gradient(135deg,${NAVY},#1a3a6e);border-radius:16px;padding:28px;color:#fff;margin-bottom:24px;text-align:center;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${AMBER};margin-bottom:10px;">Full Parent Report — Ready</div>
-      <h1 style="font-size:22px;font-weight:900;margin:0 0 10px;">Hi ${firstName}! Your student's full report is here.</h1>
-      <p style="color:rgba(255,255,255,0.75);font-size:14px;margin:0;line-height:1.6;">
-        Everything you need to have a great college major conversation — personalized to your student's specific quiz answers.
-      </p>
-    </div>
 
     <!-- Section 1: Personal Profile -->
     ${sectionHTML("PERSONAL PROFILE", "🎯", "Personal Profile Summary", "")}

@@ -579,7 +579,7 @@ export default function Quiz() {
       const res = await fetch('/api/save-answers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, results, refCode, studentState: studentState || answers["state"]?.[0] || "" }),
+        body: JSON.stringify({ answers, results, refCode, studentName, studentState: studentState || answers["state"]?.[0] || "" }),
       });
       const data = await res.json();
       sessionId = data.sessionId || '';
@@ -735,7 +735,7 @@ export default function Quiz() {
 
           <div className="fu3" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, width: "100%", maxWidth: mobile ? "100%" : "auto" }}>
             <button
-              onClick={() => setPhase("quiz")}
+              onClick={() => setPhase("name")}
               style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "17px 0" : "17px 48px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: mobile ? 17 : 17, fontWeight: 800, cursor: "pointer", boxShadow: "0 6px 32px rgba(245,166,35,.5)", letterSpacing: "-.3px", maxWidth: mobile ? 420 : "none" }}
             >
               Start the Quiz →
@@ -779,6 +779,76 @@ export default function Quiz() {
   }
 
   // ─────────────────────────────── QUIZ ───────────────────────────────────────
+
+  if (phase === "name") {
+    return (
+      <div style={{ minHeight: "100dvh", background: `linear-gradient(160deg, #0a1628 0%, ${NAVY} 50%, #0d2557 100%)`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: WHITE, fontFamily: "'Inter',system-ui,sans-serif", padding: "24px 20px" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          @keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+          .fu { animation: fadeUp .35s ease forwards }
+          .name-input::placeholder { color: rgba(255,255,255,.25); }
+          .name-input:focus { outline: none; border-color: ${AMBER}; background: rgba(255,255,255,.12); }
+        `}</style>
+
+        <div style={{ width: "100%", maxWidth: 420, textAlign: "center" }}>
+          <div className="fu" style={{ marginBottom: 32 }}>
+            <CompassWordmark size={0.9} />
+          </div>
+
+          <div className="fu" style={{ marginBottom: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: AMBER }}>Before we begin</span>
+          </div>
+
+          <h2 className="fu" style={{ fontSize: mobile ? 28 : 34, fontWeight: 900, letterSpacing: "-.5px", lineHeight: 1.15, marginBottom: 12 }}>
+            What's your first name?
+          </h2>
+          <p className="fu" style={{ fontSize: 15, color: "rgba(255,255,255,.55)", marginBottom: 36, lineHeight: 1.6 }}>
+            We'll personalize your results and the Parent Report with your name.
+          </p>
+
+          <input
+            className="name-input"
+            type="text"
+            autoFocus
+            placeholder="Enter your first name..."
+            value={studentName}
+            onChange={e => setStudentName(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && studentName.trim()) setPhase("quiz"); }}
+            style={{
+              width: "100%", padding: "16px 20px", fontSize: 18, fontWeight: 600,
+              background: "rgba(255,255,255,.08)", border: `2px solid rgba(255,255,255,.15)`,
+              borderRadius: 14, color: WHITE, fontFamily: "inherit", marginBottom: 16,
+              transition: "border-color .15s, background .15s",
+            }}
+          />
+
+          <button
+            onClick={() => { if (studentName.trim()) setPhase("quiz"); }}
+            disabled={!studentName.trim()}
+            style={{
+              width: "100%", padding: "16px", background: studentName.trim() ? AMBER : "rgba(255,255,255,.1)",
+              color: studentName.trim() ? NAVY : "rgba(255,255,255,.3)",
+              border: "none", borderRadius: 50, fontSize: 17, fontWeight: 800,
+              cursor: studentName.trim() ? "pointer" : "not-allowed",
+              transition: "all .2s", letterSpacing: "-.2px",
+              boxShadow: studentName.trim() ? "0 6px 24px rgba(245,166,35,.4)" : "none",
+            }}
+          >
+            {studentName.trim() ? `Let's go, ${studentName.trim().split(" ")[0]}! →` : "Enter your name to continue"}
+          </button>
+
+          <button
+            onClick={() => { setStudentName(""); setPhase("quiz"); }}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,.3)", fontSize: 13, cursor: "pointer", marginTop: 16, textDecoration: "underline" }}
+          >
+            Skip
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (phase === "quiz") {
     const pct = ((step + 1) / QUESTIONS.length) * 100;
@@ -992,7 +1062,7 @@ export default function Quiz() {
         {/* Banner */}
         <div className="fu" style={{ background: `linear-gradient(135deg,${NAVY},#1a3a6e)`, borderRadius: mobile ? 16 : 20, padding: mobile ? "24px 20px" : "36px", color: WHITE, marginBottom: 16, textAlign: "center" }}>
           <div style={{ display: "inline-block", background: "rgba(245,166,35,.2)", border: "1px solid rgba(245,166,35,.4)", color: AMBER, fontWeight: 700, fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", padding: "5px 14px", borderRadius: 20, marginBottom: 12 }}>Your Results</div>
-          <h2 style={{ fontSize: mobile ? 22 : 28, fontWeight: 800, letterSpacing: "-.5px", marginBottom: 8 }}>Your top 5 major matches</h2>
+          <h2 style={{ fontSize: mobile ? 22 : 28, fontWeight: 800, letterSpacing: "-.5px", marginBottom: 8 }}>{studentName ? `${studentName}'s top 5 major matches` : "Your top 5 major matches"}</h2>
           <p style={{ color: "rgba(255,255,255,.65)", fontSize: mobile ? 14 : 15, lineHeight: 1.55, marginBottom: 20, maxWidth: 420, margin: "0 auto 20px" }}>
             Personalized by AI based on your answers. Tap a card to explore videos.
           </p>
@@ -1123,7 +1193,7 @@ export default function Quiz() {
                     const res = await fetch("/api/save-answers", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ answers, results, refCode, studentState: studentState || answers["state"]?.[0] || "" }),
+                      body: JSON.stringify({ answers, results, refCode, studentName, studentState: studentState || answers["state"]?.[0] || "" }),
                     });
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
@@ -1139,9 +1209,53 @@ export default function Quiz() {
                 Get the Full Report — $9.99 →
               </button>
             </div>
+
+            {/* ── Money-back guarantee ── */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 16, padding: "12px 14px", background: "rgba(255,255,255,.06)", borderRadius: 10, border: "1px solid rgba(255,255,255,.1)" }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>🛡️</span>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,.6)", lineHeight: 1.5, margin: 0 }}>
+                <strong style={{ color: WHITE, fontWeight: 700 }}>7-day money-back guarantee.</strong> Not what you expected? Email <a href="mailto:hello@findyourmajor.org" style={{ color: AMBER, textDecoration: "none" }}>hello@findyourmajor.org</a> within 7 days for a full refund — no questions asked.
+              </p>
+            </div>
+
             <p style={{ fontSize: 11, color: "rgba(255,255,255,.3)", marginTop: 14, lineHeight: 1.5 }}>
               One-time payment · No subscription · Emailed within 60 seconds of purchase · Secure checkout via Stripe
             </p>
+          </div>
+        </div>
+
+        {/* ── Comparison Table ── */}
+        <div style={{ marginTop: 12, background: WHITE, borderRadius: mobile ? 14 : 16, border: "1px solid #E8EDF5", overflow: "hidden", boxShadow: "0 2px 12px rgba(15,31,61,.06)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", background: NAVY, padding: "12px 16px" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: "1px" }}>What you get</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,.5)", textTransform: "uppercase", letterSpacing: "1px", textAlign: "center" }}>Free results</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: AMBER, textTransform: "uppercase", letterSpacing: "1px", textAlign: "center" }}>Full report</div>
+          </div>
+          {[
+            ["Top 5 major matches",          true,  true],
+            ["Fit score & brief reason",      true,  true],
+            ["In-depth major deep-dive",      false, true],
+            ["Salary ranges by career level", false, true],
+            ["School recommendations",        false, true],
+            ["4-year course path",            false, true],
+            ["Parent conversation guide",     false, true],
+            ["90-day action plan",            false, true],
+          ].map(([label, free, paid], i) => (
+            <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "10px 16px", borderTop: "1px solid #F0F4FA", background: i % 2 === 0 ? WHITE : "#FAFBFF", alignItems: "center" }}>
+              <div style={{ fontSize: 13, color: NAVY, fontWeight: 500 }}>{label}</div>
+              <div style={{ textAlign: "center", fontSize: 16 }}>{free ? <span style={{ color: "#22C55E" }}>✓</span> : <span style={{ color: "#CBD5E1" }}>—</span>}</div>
+              <div style={{ textAlign: "center", fontSize: 16 }}>{paid ? <span style={{ color: AMBER, fontWeight: 900 }}>✓</span> : "—"}</div>
+            </div>
+          ))}
+          <div style={{ padding: "14px 16px", background: "#FFFBF0", borderTop: `2px solid ${AMBER}`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: NAVY }}>📄 See a sample report first</div>
+              <div style={{ fontSize: 12, color: SLATE, marginTop: 2 }}>Real report, student name redacted</div>
+            </div>
+            <a href="/sample-report" target="_blank" rel="noopener noreferrer"
+              style={{ background: NAVY, color: WHITE, padding: "8px 20px", borderRadius: 30, fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+              View sample →
+            </a>
           </div>
         </div>
 

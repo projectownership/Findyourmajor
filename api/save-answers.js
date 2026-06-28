@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { answers, results, refCode, studentState } = req.body || {};
+    const { answers, results, refCode, studentState, studentName } = req.body || {};
     if (!answers || !results) {
       return res.status(400).json({ error: "Missing answers or results" });
     }
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ sessionId: "no-kv" });
     }
 
-    const payload = JSON.stringify({ answers, results, refCode: refCode || "", studentState: studentState || "", createdAt: Date.now() });
+    const payload = JSON.stringify({ answers, results, refCode: refCode || "", studentName: studentName || "", studentState: studentState || "", createdAt: Date.now() });
 
     // SET key value EX 86400 (24 hours)
     const kvRes = await fetch(`${url}/set/session:${sessionId}`, {
