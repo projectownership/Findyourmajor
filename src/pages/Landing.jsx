@@ -21,7 +21,7 @@ const FEATURES = [
 const STATS = [
   { num: "8", label: "Quick questions" },
   { num: "5", label: "AI-matched majors" },
-  { num: "40+", label: "Majors in our engine" },
+  { num: "75+", label: "Majors in our engine" },
   { num: "Free", label: "Always" },
 ];
 
