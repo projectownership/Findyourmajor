@@ -72,7 +72,11 @@ Use this exact structure for each of the 5 objects:
   "salaryRange": "$60k-$110k",
   "jobOutlook": "Strong",
   "careers": ["Career 1", "Career 2", "Career 3", "Career 4"],
-  "videoQueries": ["studying [major] college overview", "what do [major] majors actually do", "[major] degree careers and salary"]
+  "videoQueries": ["studying [major] college overview", "what do [major] majors actually do", "[major] degree careers and salary"],
+  "aiImpact": {
+    "level": "accelerates",
+    "summary": "One honest, specific sentence about how AI is affecting this major right now. Choose level: accelerates (AI makes graduates more valuable — they use AI as a tool), changing (AI is reshaping the field but human judgment remains essential), or automating (AI is handling routine tasks, shrinking some roles but specialist demand remains). Be specific — name what exactly is changing, not just that change is happening."
+  }
 }
 
 Rules:
@@ -82,7 +86,9 @@ Rules:
 - Never recommend a major that directly conflicts with a stated dealbreaker unless there is truly no alternative and you explain why.
 - Use straight double quotes only. No trailing commas.
 - Return all 5 objects in a single JSON array.
-- Your entire response must start with [ and end with ].`;
+- Your entire response must start with [ and end with ].
+- aiImpact.level must be exactly one of: "accelerates", "changing", or "automating".
+- aiImpact.summary must be a single sentence — specific and honest, not generic.`;
 
     // Call the Anthropic Messages API
     // Model: Claude Fable 5 — Anthropic's most intelligent generally available
@@ -176,5 +182,9 @@ function normalize(arr) {
     jobOutlook: m.jobOutlook || m.outlook || "Stable",
     careers: Array.isArray(m.careers) ? m.careers : Array.isArray(m.jobs) ? m.jobs : [],
     videoQueries: Array.isArray(m.videoQueries) ? m.videoQueries : undefined,
+    aiImpact: {
+      level:   ["accelerates","changing","automating"].includes(m.aiImpact?.level?.toLowerCase()) ? m.aiImpact.level.toLowerCase() : "changing",
+      summary: m.aiImpact?.summary || "",
+    },
   }));
 }
