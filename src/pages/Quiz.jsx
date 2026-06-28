@@ -794,7 +794,7 @@ export default function Quiz() {
 
         <div style={{ width: "100%", maxWidth: 420, textAlign: "center" }}>
           <div className="fu" style={{ marginBottom: 32 }}>
-            <CompassWordmark size={0.9} />
+            <CompassWordmark size={0.9} dark />
           </div>
 
           <div className="fu" style={{ marginBottom: 10 }}>
