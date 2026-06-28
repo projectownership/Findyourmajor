@@ -28,50 +28,47 @@ export default async function handler(req, res) {
   const kvUrl         = process.env.KV_REST_API_URL;
   const kvToken       = process.env.KV_REST_API_TOKEN;
 
-  console.log("ENV CHECK:", {
-    hasStripeSecret:  !!stripeSecret,
-    hasWebhookSecret: !!webhookSecret,
-    hasAnthropic:     !!anthropicKey,
-    hasResend:        !!resendKey,
-    hasKvUrl:         !!kvUrl,
-    hasKvToken:       !!kvToken,
-  });
-
-  if (!stripeSecret || !webhookSecret) {
-    console.error("Missing Stripe env vars");
-    return res.status(500).json({ error: "Server config error" });
-  }
-
-  const stripe = new Stripe(stripeSecret);
-
+  // Parse and verify Stripe signature
   let event;
   try {
     const rawBody = await getRawBody(req);
     const sig     = req.headers["stripe-signature"];
+    const stripe  = new Stripe(stripeSecret, { apiVersion: "2023-10-16" });
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature error:", err.message);
     return res.status(400).json({ error: `Webhook error: ${err.message}` });
   }
 
-  console.log("Webhook event type:", event.type);
-
   if (event.type !== "checkout.session.completed") {
     return res.status(200).json({ received: true });
   }
 
+  // ── Respond to Stripe immediately to prevent timeouts and retries ──────
+  // Stripe marks webhooks as failed if they take too long to respond.
+  // We acknowledge receipt now and process the report in the background.
+  res.status(200).json({ received: true });
+
+  // ── Process report in background ────────────────────────────────────────
+  processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }).catch(err => {
+    console.error("Background report processing error:", err);
+  });
+}
+
+async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }) {
   const session       = event.data.object;
   const customerEmail = session.customer_details?.email;
   const customerName  = session.customer_details?.name || "there";
   const sessionId     = session.client_reference_id || session.metadata?.sessionId;
-  const stripeEventId = session.id; // unique per Stripe checkout session
+  const stripeEventId = session.id;
 
-  console.log("Payment details:", { customerEmail, customerName, sessionId, stripeEventId });
+  console.log("Processing report for:", { customerEmail, customerName, sessionId, stripeEventId });
 
+  if (!customerEmail) {
+    console.error("No customer email found");
+    return;
+  }
   // ── Idempotency check ────────────────────────────────────────────────────
-  // Stripe retries webhooks if it doesn't get a fast 200. We store the
-  // Stripe session ID in Upstash after processing — if it's already there,
-  // this is a retry and we should skip it.
   if (stripeEventId && kvUrl && kvToken) {
     try {
       const dupeCheck = await fetch(`${kvUrl}/get/processed:${stripeEventId}`, {
@@ -80,17 +77,18 @@ export default async function handler(req, res) {
       const dupeData = await dupeCheck.json();
       if (dupeData.result) {
         console.log("Duplicate webhook — already processed:", stripeEventId);
-        return res.status(200).json({ received: true, duplicate: true });
+        return;
       }
     } catch (err) {
       console.warn("Idempotency check failed, proceeding:", err.message);
     }
   }
   // ────────────────────────────────────────────────────────────────────────
+  // ────────────────────────────────────────────────────────────────────────
 
   if (!customerEmail) {
     console.error("No customer email found");
-    return res.status(200).json({ received: true });
+    return;
   }
 
   // Retrieve quiz answers from Upstash
@@ -199,7 +197,7 @@ export default async function handler(req, res) {
     }).catch(() => {});
   }
 
-  return res.status(200).json({ received: true });
+  return;
 }
 
 // ─── Full report generation ───────────────────────────────────────────────────
