@@ -4,7 +4,7 @@
   "redirects": [
     {
       "source": "/report",
-      "destination": "https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00",
+      "destination": "https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01",
       "permanent": false
     }
   ],
@@ -15,10 +15,11 @@
     { "source": "/((?!api/).*)",     "destination": "/index.html" }
   ],
   "functions": {
-    "api/recommend.js":         { "maxDuration": 60 },
-    "api/webhook.js":           { "maxDuration": 90 },
-    "api/save-answers.js":      { "maxDuration": 10 },
-    "api/counselor-profile.js": { "maxDuration": 10 },
-    "api/results.js":           { "maxDuration": 10 }
+    "api/recommend.js":              { "maxDuration": 60 },
+    "api/webhook.js":                { "maxDuration": 90 },
+    "api/webhook-application.js":    { "maxDuration": 90 },
+    "api/save-answers.js":           { "maxDuration": 10 },
+    "api/counselor-profile.js":      { "maxDuration": 10 },
+    "api/results.js":                { "maxDuration": 10 }
   }
 }

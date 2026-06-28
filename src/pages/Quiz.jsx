@@ -475,7 +475,7 @@ function shareText(results, sessionId) {
   const wildcard = results.find(r => r.isWildcard);
   const wildcardLine = wildcard ? `\nSurprise pick: ${wildcard.name}` : "";
   const reportUrl = sessionId
-    ? `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`
+    ? `https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01?client_reference_id=${sessionId}`
     : 'https://findyourmajor.org';
   return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($14.99)\nIncludes real company names, salary breakdowns, school recommendations, and a 90-day action plan — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
