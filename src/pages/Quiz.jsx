@@ -511,7 +511,7 @@ function VideoSection({ major, videoQueries, mobile }) {
 export default function Quiz() {
   const navigate = useNavigate();
   const mobile = useIsMobile();
-  const [phase, setPhase] = useState("quiz");
+  const [phase, setPhase] = useState("hero");
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState(null);
