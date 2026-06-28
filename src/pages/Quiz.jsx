@@ -146,35 +146,52 @@ const QUESTIONS = [
 // Replace each `url` with your real affiliate tracking link once your program
 // is approved. To remove a card, delete its object. To add one, copy the shape.
 // `tag` shows a small label; set to "" to hide it.
+//
+// AFFILIATE PROGRAMS TO APPLY FOR:
+//   Scholarships.com  — apply at scholarships.com/affiliate
+//   Bold.org          — apply at bold.org/scholarships/affiliates
+//   Fastweb           — apply at fastweb.com/affiliates
+//   Chegg             — apply via CJ Affiliate (cj.com)
+//   Coursera          — apply at coursera.org/affiliates
+//   Wyzant            — apply at wyzant.com/become-an-affiliate
+//   Amazon Associates — apply at affiliate-program.amazon.com
 
 const PARTNERS = [
   {
-    id: "personality",
-    emoji: "🧭",
-    title: "Discover your personality type",
-    blurb: "Take a free MBTI-style assessment to understand how your traits map to careers — a perfect companion to your major matches.",
-    cta: "Take the personality test",
-    tag: "Most popular",
-    // EXAMPLE placeholder — swap for your approved affiliate link:
-    url: "https://www.16personalities.com"  // TODO: replace with your affiliate tracking link,
+    id: "scholarships",
+    emoji: "🎓",
+    title: "Find scholarships for your major",
+    blurb: "Search thousands of scholarships matched to your field of study. Students pursuing specialized majors often find funding others miss.",
+    cta: "Search scholarships",
+    tag: "Free",
+    url: "https://www.scholarships.com", // TODO: replace with your affiliate tracking link
   },
   {
-    id: "career",
-    emoji: "🎯",
-    title: "Match your type to careers",
-    blurb: "Go deeper with a career-aptitude report that pairs your personality with specific job paths and work environments.",
-    cta: "Explore career fit",
-    tag: "",
-    url: "https://www.truity.com"  // TODO: replace with your affiliate tracking link,
+    id: "bold",
+    emoji: "💰",
+    title: "Apply for major-specific grants",
+    blurb: "Bold.org connects students with donors funding specific fields — from computer science to nursing to education. Many awards have under 50 applicants.",
+    cta: "Browse awards",
+    tag: "Free to apply",
+    url: "https://bold.org", // TODO: replace with your affiliate tracking link
   },
   {
     id: "courses",
     emoji: "📚",
     title: "Try a course in your top major",
-    blurb: "Test-drive your #1 match with a beginner course before you commit — most platforms offer free intro lessons.",
-    cta: "Browse intro courses",
+    blurb: "Test-drive your #1 match before you commit — Coursera offers free intro courses in most majors, taught by professors from top universities.",
+    cta: "Browse free courses",
+    tag: "Many free",
+    url: "https://www.coursera.org", // TODO: replace with your affiliate tracking link
+  },
+  {
+    id: "tutoring",
+    emoji: "🧑‍🏫",
+    title: "Get a head start with a tutor",
+    blurb: "Work with a tutor in your intended major's core subject — math, science, writing — before freshman year. Students who start strong tend to stay on track.",
+    cta: "Find a tutor",
     tag: "",
-    url: "https://www.coursera.org"  // TODO: replace with your affiliate tracking link,
+    url: "https://www.wyzant.com", // TODO: replace with your affiliate tracking link
   },
 ];
 
@@ -460,7 +477,7 @@ function shareText(results, sessionId) {
   const reportUrl = sessionId
     ? `https://buy.stripe.com/fZu6oz7g43bp56w0oR9bO00?client_reference_id=${sessionId}`
     : 'https://findyourmajor.org';
-  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($9.99)\nIncludes real company names, salary breakdowns, school recommendations, and a 90-day action plan — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($14.99)\nIncludes real company names, salary breakdowns, school recommendations, and a 90-day action plan — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -1140,6 +1157,32 @@ export default function Quiz() {
                   <span style={{ background: OFFWHT, border: "1px solid #E2E8F0", borderRadius: 8, padding: "5px 11px", fontSize: 13, color: SLATE, fontWeight: 500 }}>💰 {m.salaryRange}</span>
                   <span style={{ background: OFFWHT, border: "1px solid #E2E8F0", borderRadius: 8, padding: "5px 11px", fontSize: 13, color: SLATE, fontWeight: 500 }}>📈 {m.jobOutlook}</span>
                 </div>
+
+                {/* AI Impact badge */}
+                {m.aiImpact?.level && (
+                  <div style={{
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                    background: m.aiImpact.level === "accelerates" ? "#F0FDF4" : m.aiImpact.level === "automating" ? "#FFF7ED" : "#EFF6FF",
+                    border: `1px solid ${m.aiImpact.level === "accelerates" ? "#BBF7D0" : m.aiImpact.level === "automating" ? "#FED7AA" : "#BFDBFE"}`,
+                    borderRadius: 10, padding: "10px 12px", marginBottom: 12,
+                  }}>
+                    <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>
+                      {m.aiImpact.level === "accelerates" ? "🚀" : m.aiImpact.level === "automating" ? "⚠️" : "🔄"}
+                    </span>
+                    <div>
+                      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".8px", textTransform: "uppercase", marginBottom: 3,
+                        color: m.aiImpact.level === "accelerates" ? "#166534" : m.aiImpact.level === "automating" ? "#9A3412" : "#1E40AF"
+                      }}>
+                        AI {m.aiImpact.level === "accelerates" ? "Accelerates This" : m.aiImpact.level === "automating" ? "Is Automating Parts" : "Is Changing This"}
+                      </div>
+                      <div style={{ fontSize: mobile ? 13 : 13, lineHeight: 1.55,
+                        color: m.aiImpact.level === "accelerates" ? "#14532D" : m.aiImpact.level === "automating" ? "#7C2D12" : "#1E3A8A"
+                      }}>
+                        {m.aiImpact.summary}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Careers */}
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1px", textTransform: "uppercase", color: SLATE, marginBottom: 8 }}>Careers</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1153,7 +1196,7 @@ export default function Quiz() {
           );
         })}
 
-        {/* ── Parent Report Upsell ($9.99) ──────────────────────────────────── */}
+        {/* ── Parent Report Upsell ($14.99) ──────────────────────────────────── */}
         <div className="fu" style={{ marginTop: 16, background: `linear-gradient(135deg,${NAVY} 0%,#1a3a6e 100%)`, borderRadius: mobile ? 16 : 18, overflow: "hidden", position: "relative" }}>
           <div style={{ padding: mobile ? "28px 22px 24px" : "36px 36px 32px", color: WHITE, textAlign: "center" }}>
 
@@ -1164,7 +1207,7 @@ export default function Quiz() {
               <em style={{ color: AMBER, fontStyle: "italic" }}>Yours doesn't have to.</em>
             </h3>
             <p style={{ fontSize: mobile ? 14 : 16, color: "rgba(255,255,255,.75)", lineHeight: 1.7, marginBottom: 28, maxWidth: 440, margin: "0 auto 28px" }}>
-              For $9.99, your student gets a personalized AI report based on their exact quiz answers — salary data, school recommendations, a 4-year course plan, and a parent conversation guide. It's the clearest picture of their future you can get in under 60 seconds.
+              For $14.99, your student gets a personalized AI report based on their exact quiz answers — salary data, school recommendations, a 4-year course plan, and a parent conversation guide. It's the clearest picture of their future you can get in under 60 seconds.
             </p>
 
             {/* Price + CTA */}
@@ -1188,10 +1231,10 @@ export default function Quiz() {
                   }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "18px 0" : "18px 52px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 17, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 24px rgba(245,166,35,.45)", letterSpacing: "-.2px" }}>
-                Get the Full Report — $9.99 →
+                Get the Full Report — $14.99 →
               </button>
               <div style={{ marginTop: 10, fontSize: 13, color: "rgba(255,255,255,.4)" }}>
-                <span style={{ textDecoration: "line-through", marginRight: 6 }}>$19.99</span>Launch price · One-time · In your inbox in 60 seconds
+                <span style={{ textDecoration: "line-through", marginRight: 6 }}>$24.99</span>Launch price · One-time · In your inbox in 60 seconds
               </div>
             </div>
 
@@ -1239,14 +1282,14 @@ export default function Quiz() {
           </div>
         </div>
 
-        {/* ── Discover More About Yourself (affiliate) ── */}
+        {/* ── Resources (affiliate) ── */}
         <div className="fu" style={{ marginTop: 28, background: WHITE, borderRadius: mobile ? 16 : 18, border: "1px solid #E8EDF5", boxShadow: "0 2px 12px rgba(15,31,61,.07)", overflow: "hidden" }}>
           {/* Header */}
           <div style={{ background: `linear-gradient(135deg,${INDIGO},#4f46e5)`, padding: mobile ? "20px" : "26px 28px", color: WHITE }}>
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.85, marginBottom: 8 }}>Next Steps</div>
-            <h3 style={{ fontSize: mobile ? 20 : 23, fontWeight: 800, letterSpacing: "-.4px", marginBottom: 6, lineHeight: 1.2 }}>Discover more about yourself</h3>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.85, marginBottom: 8 }}>Free Resources</div>
+            <h3 style={{ fontSize: mobile ? 20 : 23, fontWeight: 800, letterSpacing: "-.4px", marginBottom: 6, lineHeight: 1.2 }}>Scholarships, courses & more</h3>
             <p style={{ fontSize: mobile ? 14 : 15, lineHeight: 1.55, color: "rgba(255,255,255,.8)", maxWidth: 480 }}>
-              Your major is one piece of the puzzle. These tools help you understand your personality and test-drive your options before you commit.
+              Now that you know your top majors, take the next step — find funding, test-drive a course, or get ahead with a tutor.
             </p>
           </div>
 

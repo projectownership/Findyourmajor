@@ -225,7 +225,7 @@ async function generateFullReport(quizData, apiKey) {
   const top1    = hasResults ? results[0] : null;
   const wildcard = hasResults ? results.find(r => r.isWildcard) : null;
 
-  const prompt = `You are an expert college major advisor writing a comprehensive, personalized Parent Report. This is a paid $9.99 report — it should feel thorough, professional, and genuinely valuable.
+  const prompt = `You are an expert college major advisor writing a comprehensive, personalized Parent Report. This is a paid $14.99 report — it should feel thorough, professional, and genuinely valuable.
 
 ${hasResults ? `THE STUDENT'S AI-RECOMMENDED MAJORS:\n${majorContext}` : "No quiz data — write general guidance."}
 
@@ -273,6 +273,15 @@ For the top 3 majors provide a complete career picture:
 - The single highest-paying career path available from this major
 - Where salaries are highest geographically (top 2-3 cities or regions)
 - One emerging career path in this field that didn't exist 10 years ago
+
+SECTION 6B — AI IMPACT ANALYSIS
+This is one of the most important sections for today's students and parents. For each of the top 3 recommended majors, give an honest, specific assessment:
+- Is AI a tool that makes graduates MORE valuable (accelerates), a force reshaping the field requiring adaptation (changing), or automating routine tasks and shrinking some roles (automating)?
+- Name exactly which tasks within this major AI is handling vs. which require human judgment
+- Which roles within this major are most AI-proof and why
+- What skills a student in this major should develop NOW to stay ahead of AI
+- One specific example of a company or tool using AI in this field today
+Be honest — do not be falsely reassuring. Students need the truth so they can make smart choices.
 
 SECTION 7 — 4-YEAR COURSE PATH
 For the #1 recommended major outline a realistic 4-year path:

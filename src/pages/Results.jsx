@@ -101,7 +101,7 @@ export default function Results() {
             The Parent Report includes salary projections, a 4-year course path, school recommendations, and a parent conversation guide.
           </p>
           <a href="/report" style={{ background: NAVY, color: WHITE, padding: "12px 28px", borderRadius: 50, fontSize: 14, fontWeight: 700, textDecoration: "none", display: "inline-block" }}>
-            Get the full report — $9.99
+            Get the full report — $14.99
           </a>
         </div>
       </div>
