@@ -11,6 +11,7 @@
   "rewrites": [
     { "source": "/counselors",       "destination": "/counselors.html" },
     { "source": "/counselors/setup", "destination": "/counselor-setup.html" },
+    { "source": "/sample-report",    "destination": "/sample-report.html" },
     { "source": "/((?!api/).*)",     "destination": "/index.html" }
   ],
   "functions": {

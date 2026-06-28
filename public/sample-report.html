@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sample Parent Report — Find Your Major</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', Arial, sans-serif; background: #F0F4FA; color: #0F1F3D; -webkit-font-smoothing: antialiased; }
+  .page { max-width: 660px; margin: 0 auto; padding: 0 0 60px; }
+
+  /* NAV */
+  .top-bar { background: #0F1F3D; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+  .top-logo { font-size: 16px; font-weight: 900; color: #fff; }
+  .top-logo span { color: #F5A623; }
+  .sample-badge { background: #F5A623; color: #0F1F3D; font-size: 11px; font-weight: 800; padding: 4px 14px; border-radius: 20px; letter-spacing: .5px; }
+
+  /* BANNER */
+  .sample-banner { background: #FEF3DC; border-bottom: 2px solid #F5A623; padding: 14px 24px; text-align: center; font-size: 14px; color: #0F1F3D; font-weight: 600; }
+  .sample-banner a { color: #0F1F3D; font-weight: 800; }
+
+  /* HERO */
+  .report-hero { background: linear-gradient(135deg, #0F1F3D 0%, #1a3a6e 100%); padding: 32px 28px; color: #fff; text-align: center; margin-bottom: 20px; }
+  .report-hero-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #F5A623; margin-bottom: 10px; }
+  .report-hero h1 { font-size: 22px; font-weight: 900; margin-bottom: 10px; }
+  .report-hero p { color: rgba(255,255,255,.72); font-size: 14px; line-height: 1.6; }
+  .report-meta { display: flex; gap: 20px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .report-meta-item { font-size: 12px; color: rgba(255,255,255,.5); }
+  .report-meta-item strong { color: #F5A623; display: block; font-size: 14px; }
+
+  /* SECTION BLOCK */
+  .section-block { margin: 0 16px 20px; }
+  .section-head { background: #0F1F3D; border-radius: 10px 10px 0 0; padding: 11px 18px; display: flex; align-items: center; gap: 8px; }
+  .section-head-icon { font-size: 16px; }
+  .section-head-title { color: #F5A623; font-weight: 800; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .section-body { background: #fff; border: 1px solid #E2E8F0; border-top: none; border-radius: 0 0 10px 10px; padding: 18px; }
+  .section-body p { color: #374151; font-size: 14px; line-height: 1.75; margin-bottom: 14px; }
+  .section-body p:last-child { margin-bottom: 0; }
+  .section-body ul { margin: 0 0 14px; padding-left: 20px; }
+  .section-body li { color: #374151; font-size: 14px; line-height: 1.75; margin-bottom: 5px; }
+  .section-body strong { color: #0F1F3D; }
+
+  /* MAJOR CARD */
+  .major-card { border-left: 4px solid #F5A623; border-radius: 0 10px 10px 0; padding: 16px 18px; margin-bottom: 12px; background: #fff; border-top: 1px solid #E2E8F0; border-right: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; }
+  .major-card.indigo { border-left-color: #6366F1; }
+  .major-card.green  { border-left-color: #22C55E; }
+  .major-card.slate  { border-left-color: #94A3B8; }
+  .major-card.purple { border-left-color: #7C3AED; }
+  .major-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 10px; }
+  .major-name { font-size: 16px; font-weight: 700; color: #0F1F3D; }
+  .fit-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .fit-high { background: #F0FDF4; color: #166534; }
+  .fit-mid  { background: #FEF3DC; color: #D97706; }
+  .wildcard-tag { background: #EDE9FE; color: #7C3AED; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
+  .major-why { color: #475569; font-size: 14px; line-height: 1.6; margin-bottom: 10px; }
+  .major-meta { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #64748B; }
+  .career-tags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .career-tag { background: #F1F5F9; color: #0F1F3D; font-size: 12px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+  .first-step { background: #FEF3DC; border-radius: 8px; padding: 10px 12px; margin-top: 10px; font-size: 13px; color: #78350F; }
+
+  /* SALARY TABLE */
+  .salary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .salary-cell { background: #F8F9FC; border-radius: 8px; padding: 12px; text-align: center; }
+  .salary-label { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .salary-amount { font-size: 18px; font-weight: 800; color: #0F1F3D; }
+
+  /* CTA */
+  .report-cta { margin: 20px 16px 0; background: linear-gradient(135deg, #0F1F3D, #1a3a6e); border-radius: 16px; padding: 28px; text-align: center; color: #fff; }
+  .report-cta h2 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+  .report-cta p { color: rgba(255,255,255,.7); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+  .cta-btn { background: #F5A623; color: #0F1F3D; padding: 14px 36px; border-radius: 50px; font-size: 15px; font-weight: 900; text-decoration: none; display: inline-block; }
+  .cta-guarantee { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 12px; }
+
+  /* BLUR OVERLAY */
+  .blurred { position: relative; }
+  .blurred::after { content: ''; position: absolute; inset: 0; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); background: rgba(240,244,250,.6); border-radius: 0 0 10px 10px; }
+  .blur-cta { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 2; text-align: center; width: 90%; }
+  .blur-cta-btn { background: #0F1F3D; color: #fff; padding: 12px 28px; border-radius: 50px; font-size: 14px; font-weight: 800; text-decoration: none; display: inline-block; box-shadow: 0 4px 20px rgba(15,31,61,.3); white-space: nowrap; }
+  .blur-cta p { font-size: 13px; color: #6B7A99; margin-top: 8px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="top-logo">Find Your Major<span>.</span></div>
+  <div class="sample-badge">Sample Report</div>
+</div>
+
+<div class="sample-banner">
+  📋 This is a real report with the student's name redacted. Your report will be personalized to your student's exact quiz answers. &nbsp;<a href="/quiz">Take the free quiz →</a>
+</div>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="report-hero">
+    <div class="report-hero-eyebrow">Full Parent Report — Ready</div>
+    <h1>Hi [Parent]! Your student's full report is here.</h1>
+    <p>Everything you need to have a great college major conversation — personalized to your student's specific quiz answers.</p>
+    <div class="report-meta">
+      <div class="report-meta-item"><strong>5</strong>Majors analyzed</div>
+      <div class="report-meta-item"><strong>10</strong>Report sections</div>
+      <div class="report-meta-item"><strong>&lt;60s</strong>Delivery time</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: PERSONAL PROFILE -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">🧠</span><span class="section-head-title">Personal Profile</span></div>
+    <div class="section-body">
+      <p>Your student is a natural problem-solver with a strong analytical streak and a genuine desire to make things work better. They gravitate toward hands-on challenges where they can see the direct result of their thinking — whether that's debugging a system, optimizing a process, or building something from scratch.</p>
+      <p>What stands out most is the combination of technical curiosity and people-awareness. They're not just interested in how things work — they're interested in how things work <strong>for people</strong>. That's a rare combination, and it opens doors that pure technologists often miss.</p>
+      <p>Their dealbreakers are equally telling: they explicitly want to avoid environments that feel bureaucratic or disconnected from real outcomes. This points toward roles with clear feedback loops and tangible impact — startup environments, product teams, and applied research all fit that bill.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2: TOP MAJOR DEEP-DIVE -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">🔍</span><span class="section-head-title">Top Major Deep-Dive — Computer Science</span></div>
+    <div class="section-body">
+      <p>Computer Science isn't just about coding — it's about learning to think systematically about complex problems. Your student's profile maps directly onto what CS rewards: analytical thinking, comfort with abstraction, and the drive to build things that work.</p>
+      <p>The day-to-day in a CS degree involves a mix of theoretical work (algorithms, data structures, computational theory) and applied projects (building software, working in teams, solving real problems). The first two years are foundational and can feel abstract — but the upper-level courses are where most students find their specific passion, whether that's AI, security, systems, or human-computer interaction.</p>
+      <p><strong>What makes CS different from coding bootcamps:</strong> A CS degree teaches you to think about problems from first principles. You'll understand why certain algorithms are faster, how operating systems work under the hood, and how to design systems that scale. That depth is what separates CS graduates from self-taught developers in technical interviews at top companies.</p>
+      <p><strong>Emerging path to watch:</strong> AI/ML Engineering. This didn't exist as a mainstream career 10 years ago. Today it's one of the highest-paid and fastest-growing roles in tech. A CS degree with a focus on machine learning courses is the most direct path.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3: ALL 5 MAJOR CARDS -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">⭐</span><span class="section-head-title">All 5 Major Matches</span></div>
+    <div class="section-body">
+
+      <div class="major-card">
+        <div class="major-card-top">
+          <div class="major-name">#1 — Computer Science</div>
+          <span class="fit-badge fit-high">94% fit</span>
+        </div>
+        <p class="major-why">Your student's interest in math, science, and technology, combined with an analytical work style and a preference for roles with clear outcomes, aligns strongly with CS. The field rewards exactly the profile shown here: systematic thinking, curiosity about how things work, and a desire to build.</p>
+        <div class="major-meta"><span>💰 $85k–$145k</span><span>📈 Excellent</span></div>
+        <div class="career-tags">
+          <span class="career-tag">Software Engineer</span>
+          <span class="career-tag">ML Engineer</span>
+          <span class="career-tag">Product Manager</span>
+          <span class="career-tag">Data Scientist</span>
+        </div>
+        <div class="first-step">👟 <strong>First step this week:</strong> Build something small — a web scraper, a calculator, or a simple game in Python. The best CS students start before college.</div>
+      </div>
+
+      <div class="major-card indigo">
+        <div class="major-card-top">
+          <div class="major-name">#2 — Data Science</div>
+          <span class="fit-badge fit-high">89% fit</span>
+        </div>
+        <p class="major-why">Data Science sits at the intersection of statistics, programming, and domain expertise. Your student's combination of math interest and desire for clear, measurable outcomes is a perfect fit for a field where the job is literally "find the answer in the numbers."</p>
+        <div class="major-meta"><span>💰 $80k–$130k</span><span>📈 Strong</span></div>
+        <div class="career-tags">
+          <span class="career-tag">Data Analyst</span>
+          <span class="career-tag">Data Scientist</span>
+          <span class="career-tag">BI Engineer</span>
+        </div>
+      </div>
+
+      <div class="major-card green">
+        <div class="major-card-top">
+          <div class="major-name">#3 — Electrical Engineering</div>
+          <span class="fit-badge fit-high">85% fit</span>
+        </div>
+        <p class="major-why">For students who want to build things in the physical world — not just software — EE is the path. Semiconductors, robotics, power systems, and consumer electronics all run through this major. Higher floor than CS in terms of job security.</p>
+        <div class="major-meta"><span>💰 $78k–$125k</span><span>📈 Stable</span></div>
+        <div class="career-tags">
+          <span class="career-tag">Electrical Engineer</span>
+          <span class="career-tag">Hardware Designer</span>
+          <span class="career-tag">Systems Engineer</span>
+        </div>
+      </div>
+
+      <div class="major-card slate">
+        <div class="major-card-top">
+          <div class="major-name">#4 — Applied Mathematics</div>
+          <span class="fit-badge fit-mid">78% fit</span>
+        </div>
+        <p class="major-why">If your student finds the theory behind CS more interesting than the implementation, Applied Math is worth serious consideration. It's the foundation under data science, finance, and engineering — and graduates are highly sought after precisely because the major is rare.</p>
+        <div class="major-meta"><span>💰 $70k–$120k</span><span>📈 Growing</span></div>
+      </div>
+
+      <div class="major-card purple">
+        <div class="major-card-top">
+          <div class="major-name">#5 — Human-Computer Interaction</div>
+          <span class="fit-badge fit-mid">74% fit</span>
+        </div>
+        <div class="wildcard-tag">✨ WILDCARD PICK</div>
+        <p class="major-why">This one probably didn't cross their radar — and that's exactly why it's here. HCI is what happens when CS meets design meets psychology. Your student's people-awareness combined with their technical interest is the exact profile that thrives in UX research and product design. Average starting salary at major tech companies: $95k.</p>
+        <div class="major-meta"><span>💰 $75k–$125k</span><span>📈 Strong</span></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECTION 4: RECOMMENDED SCHOOLS -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">🏫</span><span class="section-head-title">Recommended Schools</span></div>
+    <div class="section-body">
+      <p><strong>For Computer Science:</strong></p>
+      <ul>
+        <li><strong>University of Illinois Urbana-Champaign (in-state option)</strong> — Consistently ranked top 5 CS programs in the US. In-state tuition saves roughly $25,000/year vs. out-of-state. Strong recruiting pipeline to Google, Amazon, and Microsoft.</li>
+        <li><strong>Worcester Polytechnic Institute</strong> — Project-based curriculum means students graduate with a real portfolio. Co-op program guarantees work experience before graduation.</li>
+        <li><strong>Carnegie Mellon University</strong> — The gold standard for CS. Extremely competitive admissions, but graduates have the highest median starting salaries in the field at $130k+.</li>
+      </ul>
+      <p style="margin-top:14px;"><strong>For Data Science:</strong></p>
+      <ul>
+        <li><strong>Purdue University (in-state option)</strong> — Strong statistics and data science department with direct industry connections to pharma, finance, and tech companies in the Midwest.</li>
+        <li><strong>University of San Francisco</strong> — One of the first dedicated MS programs in Data Science. Strong San Francisco tech network for internships and jobs.</li>
+        <li><strong>UC Berkeley</strong> — The Data Science undergraduate major here is widely considered the best in the country. Highly competitive, but the alumni network is unmatched.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 5: SALARY DEEP-DIVE (partially blurred) -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">💰</span><span class="section-head-title">Salary Deep-Dive</span></div>
+    <div class="section-body">
+      <p><strong>Computer Science — salary by career stage:</strong></p>
+      <div class="salary-row">
+        <div class="salary-cell"><div class="salary-label">Entry Level</div><div class="salary-amount">$95k</div></div>
+        <div class="salary-cell"><div class="salary-label">Mid-Career</div><div class="salary-amount">$130k</div></div>
+        <div class="salary-cell"><div class="salary-label">Senior</div><div class="salary-amount">$175k+</div></div>
+      </div>
+      <p style="margin-top:14px;">Top-paying cities: San Francisco ($145k avg entry), Seattle ($130k avg entry), New York ($125k avg entry). Remote roles have compressed these gaps significantly — many entry-level remote CS roles now start at $100k+.</p>
+    </div>
+  </div>
+
+  <!-- SECTIONS 6-10: BLURRED -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">📅</span><span class="section-head-title">4-Year Course Path</span></div>
+    <div style="position:relative;">
+      <div class="section-body blurred" style="min-height:180px;">
+        <p><strong>Year 1 — Foundations:</strong> Introduction to Programming (Python), Calculus I & II, Discrete Mathematics, Introduction to Computer Systems</p>
+        <p><strong>Year 2 — Core:</strong> Data Structures & Algorithms, Computer Organization, Statistics for Data Science, Linear Algebra</p>
+        <p><strong>Year 3 — Specialization:</strong> Machine Learning, Database Systems, Software Engineering, elective in AI or Security</p>
+      </div>
+      <div class="blur-cta">
+        <a href="/quiz" class="blur-cta-btn">Get your student's personalized plan →</a>
+        <p>Includes internship targets and summer program recommendations</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">🗣️</span><span class="section-head-title">Parent Conversation Guide</span></div>
+    <div style="position:relative;">
+      <div class="section-body blurred" style="min-height:160px;">
+        <p>Based on your student's quiz answers, here are 6 questions designed to open a real conversation — not lead them toward a predetermined answer:</p>
+        <ul>
+          <li>When you imagine yourself at work in 10 years, what does the room look like? Who's there?</li>
+          <li>Is there a problem in the world you find yourself thinking about unprompted?</li>
+        </ul>
+      </div>
+      <div class="blur-cta">
+        <a href="/quiz" class="blur-cta-btn">Unlock the full conversation guide →</a>
+        <p>6 tailored questions + 90-day action plan</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="report-cta">
+    <h2>This is what your student's report looks like</h2>
+    <p>Every section is personalized to their exact quiz answers — different majors, different schools, different salary paths, different conversation questions. Takes 3 minutes to generate.</p>
+    <a href="/quiz" class="cta-btn">Take the free quiz first →</a>
+    <div class="cta-guarantee">🛡️ 7-day money-back guarantee · $9.99 one-time · Delivered in under 60 seconds</div>
+  </div>
+
+</div>
+</body>
+</html>
