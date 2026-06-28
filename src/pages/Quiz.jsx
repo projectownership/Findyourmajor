@@ -801,10 +801,10 @@ export default function Quiz() {
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: AMBER }}>Before we begin</span>
           </div>
 
-          <h2 className="fu" style={{ fontSize: mobile ? 28 : 34, fontWeight: 900, letterSpacing: "-.5px", lineHeight: 1.15, marginBottom: 12 }}>
+          <h2 className="fu" style={{ fontSize: mobile ? 28 : 34, fontWeight: 900, letterSpacing: "-.5px", lineHeight: 1.15, marginBottom: 12, color: WHITE }}>
             What's your first name?
           </h2>
-          <p className="fu" style={{ fontSize: 15, color: "rgba(255,255,255,.55)", marginBottom: 36, lineHeight: 1.6 }}>
+          <p className="fu" style={{ fontSize: 15, color: "rgba(255,255,255,.85)", marginBottom: 36, lineHeight: 1.6 }}>
             We'll personalize your results and the Parent Report with your name.
           </p>
 
@@ -818,7 +818,7 @@ export default function Quiz() {
             onKeyDown={e => { if (e.key === "Enter" && studentName.trim()) setPhase("quiz"); }}
             style={{
               width: "100%", padding: "16px 20px", fontSize: 18, fontWeight: 600,
-              background: "rgba(255,255,255,.08)", border: `2px solid rgba(255,255,255,.15)`,
+              background: "rgba(255,255,255,.15)", border: `2px solid rgba(255,255,255,.5)`,
               borderRadius: 14, color: WHITE, fontFamily: "inherit", marginBottom: 16,
               transition: "border-color .15s, background .15s",
             }}
@@ -828,8 +828,8 @@ export default function Quiz() {
             onClick={() => { if (studentName.trim()) setPhase("quiz"); }}
             disabled={!studentName.trim()}
             style={{
-              width: "100%", padding: "16px", background: studentName.trim() ? AMBER : "rgba(255,255,255,.1)",
-              color: studentName.trim() ? NAVY : "rgba(255,255,255,.3)",
+              width: "100%", padding: "16px", background: studentName.trim() ? AMBER : "rgba(255,255,255,.15)",
+              color: studentName.trim() ? NAVY : "rgba(255,255,255,.6)",
               border: "none", borderRadius: 50, fontSize: 17, fontWeight: 800,
               cursor: studentName.trim() ? "pointer" : "not-allowed",
               transition: "all .2s", letterSpacing: "-.2px",
@@ -841,7 +841,7 @@ export default function Quiz() {
 
           <button
             onClick={() => { setStudentName(""); setPhase("quiz"); }}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,.3)", fontSize: 13, cursor: "pointer", marginTop: 16, textDecoration: "underline" }}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,.55)", fontSize: 13, cursor: "pointer", marginTop: 16, textDecoration: "underline" }}
           >
             Skip
           </button>
