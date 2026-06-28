@@ -525,6 +525,7 @@ function buildEmail(firstName, sections, quizData, counselorProfile, sessionId) 
         Retake the Quiz →
       </a>
       <p style="font-size:12px;color:#94a3b8;margin-top:10px;">Share findyourmajor.org with other parents — the quiz is completely free.</p>
+      <p style="font-size:12px;color:#94a3b8;margin-top:10px;">📬 If this email landed in your spam folder, please mark it as <strong>Not Spam</strong> — it helps ensure future reports reach your inbox directly.</p>
     </div>
 
     <!-- Footer -->
