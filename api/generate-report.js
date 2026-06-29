@@ -6,9 +6,6 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  // Respond immediately so the caller doesn't wait
-  res.status(200).json({ received: true });
-
   const { sessionId, customerEmail, customerName, stripeEventId } = req.body || {};
 
   const kvUrl        = process.env.KV_REST_API_URL;
@@ -139,6 +136,8 @@ export default async function handler(req, res) {
       headers: { Authorization: `Bearer ${kvToken}` },
     }).catch(() => {});
   }
+
+  return res.status(200).json({ ok: true });
 }
 
 // ─── Helpers (copied from webhook.js) ────────────────────────────────────────
