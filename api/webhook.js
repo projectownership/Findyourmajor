@@ -151,8 +151,9 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
   // Send email via Resend
   console.log("Sending email to:", customerEmail, "resendKey exists:", !!resendKey);
   try {
-    const firstName = customerName.split(" ")[0];
-    const html      = buildEmail(firstName, sections, quizData, counselorProfile, sessionId);
+    const firstName   = customerName.split(" ")[0];
+    const studentName = quizData?.studentName || "";
+    const html        = buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName);
     const fromAddr  = process.env.RESEND_FROM || "Find Your Major <onboarding@resend.dev>";
 
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -393,7 +394,7 @@ function buildFallbackSections(quizData) {
 
 // ─── Email builder ────────────────────────────────────────────────────────────
 
-function buildEmail(firstName, sections, quizData, counselorProfile, sessionId) {
+function buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName = "") {
   const results  = quizData?.results || [];
   const NAVY     = "#0F1F3D";
   const AMBER    = "#F5A623";
