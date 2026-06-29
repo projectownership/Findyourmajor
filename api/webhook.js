@@ -44,6 +44,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   }
 
+  const session = event.data.object;
+
   // ── Respond to Stripe immediately (Stripe times out after 30s) ─────────
   // Then trigger report generation via a separate long-running endpoint
   res.status(200).json({ received: true });
