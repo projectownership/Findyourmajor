@@ -44,15 +44,17 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   }
 
-  // ── Respond to Stripe immediately to prevent timeouts and retries ──────
-  // Stripe marks webhooks as failed if they take too long to respond.
-  // We acknowledge receipt now and process the report in the background.
-  res.status(200).json({ received: true });
+  // ── Process report then respond to Stripe ──────────────────────────────
+  // NOTE: Vercel kills background tasks after res.json() is called.
+  // We must await the full report generation BEFORE responding.
+  // The 300s timeout (Vercel Pro) gives us plenty of time.
+  try {
+    await processReport({ event, anthropicKey, resendKey, kvUrl, kvToken });
+  } catch (err) {
+    console.error("processReport error:", err.message);
+  }
 
-  // ── Process report in background ────────────────────────────────────────
-  processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }).catch(err => {
-    console.error("Background report processing error:", err);
-  });
+  return res.status(200).json({ received: true });
 }
 
 async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }) {
