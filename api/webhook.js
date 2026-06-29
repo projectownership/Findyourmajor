@@ -93,19 +93,28 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
 
   // Retrieve quiz answers from Upstash
   let quizData = null;
+  console.log("KV config:", { hasKvUrl: !!kvUrl, hasKvToken: !!kvToken, sessionId });
+
   if (sessionId && sessionId !== "no-kv" && kvUrl && kvToken) {
     try {
+      console.log("Fetching quiz data from KV for session:", sessionId);
       const kvRes  = await fetch(`${kvUrl}/get/session:${sessionId}`, {
         headers: { Authorization: `Bearer ${kvToken}` },
       });
+      console.log("KV response status:", kvRes.status);
       const kvJson = await kvRes.json();
+      console.log("KV response result exists:", !!kvJson.result);
       if (kvJson.result) {
         quizData = JSON.parse(kvJson.result);
         console.log("Quiz data retrieved, majors:", quizData?.results?.length, "refCode:", quizData?.refCode || "none");
+      } else {
+        console.warn("No quiz data found in KV for session:", sessionId);
       }
     } catch (err) {
-      console.warn("KV lookup failed:", err.message);
+      console.error("KV lookup failed:", err.message, err.stack);
     }
+  } else {
+    console.warn("Skipping KV lookup:", { sessionId, hasKvUrl: !!kvUrl, hasKvToken: !!kvToken });
   }
 
   // Fetch counselor profile for white-label branding (if referred)
@@ -127,15 +136,18 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
 
   // Generate full report with Claude
   let sections = null;
+  console.log("Generating report, quizData exists:", !!quizData, "anthropicKey exists:", !!anthropicKey);
   try {
     sections = await generateFullReport(quizData, anthropicKey);
-    console.log("Report generated successfully");
+    console.log("Report generated successfully, sections:", Object.keys(sections || {}).length);
   } catch (err) {
-    console.error("Report generation failed:", err.message);
+    console.error("Report generation failed:", err.message, err.stack);
     sections = buildFallbackSections(quizData);
+    console.log("Using fallback sections");
   }
 
   // Send email via Resend
+  console.log("Sending email to:", customerEmail, "resendKey exists:", !!resendKey);
   try {
     const firstName = customerName.split(" ")[0];
     const html      = buildEmail(firstName, sections, quizData, counselorProfile, sessionId);
