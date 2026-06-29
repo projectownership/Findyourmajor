@@ -44,38 +44,27 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   }
 
-  const session = event.data.object;
-
-  // ── Trigger report generation BEFORE responding ─────────────────────────
-  // Vercel kills any async work after res.json() — must trigger first
-  const generateUrl = `https://www.findyourmajor.org/api/generate-report`;
-  try {
-    await fetch(generateUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: session.client_reference_id || session.metadata?.sessionId,
-        customerEmail: session.customer_details?.email,
-        customerName: session.customer_details?.name || "there",
-        stripeEventId: session.id,
-      }),
-    });
-    console.log("generate-report triggered successfully");
-  } catch (err) {
-    console.error("generate-report trigger failed:", err.message);
-  }
-
-  // ── Respond to Stripe ────────────────────────────────────────────────────
-  return res.status(200).json({ received: true });
-}
-
-async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }) {
   const session       = event.data.object;
   const customerEmail = session.customer_details?.email;
   const customerName  = session.customer_details?.name || "there";
   const sessionId     = session.client_reference_id || session.metadata?.sessionId;
   const stripeEventId = session.id;
 
+  // Respond to Stripe immediately
+  res.status(200).json({ received: true });
+
+  // Process report in background
+  const kvUrl        = process.env.KV_REST_API_URL;
+  const kvToken      = process.env.KV_REST_API_TOKEN;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  const resendKey    = process.env.RESEND_API_KEY;
+
+  processReport({ customerEmail, customerName, sessionId, stripeEventId, kvUrl, kvToken, anthropicKey, resendKey }).catch(err => {
+    console.error("processReport error:", err.message);
+  });
+}
+
+async function processReport({ customerEmail, customerName, sessionId, stripeEventId, kvUrl, kvToken, anthropicKey, resendKey }) {
   console.log("Processing report for:", { customerEmail, customerName, sessionId, stripeEventId });
 
   if (!customerEmail) {

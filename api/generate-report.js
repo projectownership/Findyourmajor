@@ -160,89 +160,37 @@ async function generateFullReport(quizData, apiKey) {
 
   const top1 = hasResults ? results[0] : null;
 
-  const prompt = `You are an expert college major advisor writing a personalized Parent Report for a student.
+  const prompt = `You are a college major advisor. Write a personalized Parent Report for ${quizData?.studentName || "this student"} based on their quiz answers.
 
-STUDENT PROFILE FROM QUIZ:
-Activities enjoyed: ${(answers.activities || []).join(", ")}
-Favorite subjects: ${(answers.school || []).join(", ")}
-Work style: ${(answers.work_style || []).join(", ")}
-Core values: ${(answers.values || []).join(", ")}
-World problem they care about: ${(answers.problem || []).join(", ")}
-Key strengths: ${(answers.strengths || []).join(", ")}
-Dealbreakers: ${(answers.dealbreakers || []).join(", ")}
-Bad environments: ${(answers.bad_environment || []).join(", ")}
-${quizData?.studentName ? `Student name: ${quizData.studentName}` : ""}
-${studentState ? `Student's state: ${studentState}` : ""}
+STUDENT ANSWERS:
+- Activities: ${(answers.activities||[]).join(", ")}
+- Subjects: ${(answers.school||[]).join(", ")}
+- Work style: ${(answers.work_style||[]).join(", ")}
+- Values: ${(answers.values||[]).join(", ")}
+- Strengths: ${(answers.strengths||[]).join(", ")}
+- Dealbreakers: ${(answers.dealbreakers||[]).join(", ")}
 
-AI MAJOR RECOMMENDATIONS:
+TOP MAJOR MATCHES:
 ${majorContext}
 
-TOP MAJOR: ${top1 ? `${top1.name} (${top1.fitScore}% fit)` : "Not available"}
-
-Write a complete report with ALL of the following sections. Be specific, personal, and use the student's actual answers throughout.
+Write these 5 sections using plain text only (no asterisks, no markdown, use dashes for bullets):
 
 SECTION 1 — PERSONAL PROFILE
-Write 3-4 sentences capturing who this student is based on their quiz answers. Be warm and specific — reference their actual interests and values.
+3 sentences about who this student is based on their answers.
 
-SECTION 2 — YOUR #1 MAJOR: ${top1 ? top1.name : "Top Recommendation"}
-A detailed deep-dive: what the day-to-day looks like, what kind of person thrives in it, specific courses they'll take, and why it fits this student's exact profile.
+SECTION 2 — TOP MAJOR DEEP-DIVE
+Detailed look at ${top1 ? top1.name : "their top major"}: what students study, day-to-day work life, why it fits this student specifically, and 3 specific job titles they could hold.
 
-SECTION 3 — ALL 5 MAJOR MATCHES
-For each recommended major provide: why it fits this student specifically, honest tradeoffs, and one thing that might surprise them about it.
+SECTION 3 — ALL 5 MAJORS BREAKDOWN
+For each major: one paragraph on why it fits, salary range, and top 3 careers.
 
-SECTION 4 — WILDCARD SPOTLIGHT
-Focus on the wildcard major. Explain why it might not have crossed their radar and why it's worth serious consideration for someone with their profile.
+SECTION 4 — RECOMMENDED SCHOOLS
+For the top 2 majors, list 3 schools each (budget, mid-range, top-ranked) with one sentence on why each is worth considering.${studentState ? " Student is from " + studentState + " — prioritize in-state options." : ""}
 
-SECTION 5 — RECOMMENDED SCHOOLS
-${studentState ? `The student lives in ${studentState}. Lead with IN-STATE options first — they are often $20,000+ cheaper per year than out-of-state.` : ""}
-For the top 2 majors, list 3 schools each:
-${studentState ? `- One strong in-state public university in ${studentState} (most important — list this first with in-state tuition savings noted)` : "- One budget-friendly / state school option"}
-- One mid-range private option
-- One highly-ranked program option
-For each school include what makes the program notable and one specific advantage.
+SECTION 5 — 90-DAY ACTION PLAN
+Month 1, Month 2, Month 3 — 3 specific actions each month to explore these majors.
 
-SECTION 6 — CAREER & SALARY DEEP-DIVE
-For the top 3 majors:
-- Entry-level salary range with specific job title
-- Mid-career salary range with specific job title
-- Senior/peak salary with specific job title
-- Top 3 real companies hiring from this major
-- Highest-paying geographic markets
-- One emerging career path in this field that didn't exist 10 years ago
-
-SECTION 6B — AI IMPACT ANALYSIS
-For each of the top 3 majors give an honest assessment:
-- Is AI accelerating this field, changing it, or automating parts of it?
-- Which specific tasks AI is handling vs. which require human judgment
-- What skills to develop NOW to stay ahead
-Be honest — students need the truth to make smart choices.
-
-SECTION 7 — 4-YEAR COURSE PATH
-For the top major, provide a sample semester-by-semester plan:
-Year 1: Foundation courses (name them specifically)
-Year 2: Core major courses
-Year 3: Specialization courses + internship targets
-Year 4: Senior courses + capstone + job search timeline
-
-SECTION 8 — PARENT CONVERSATION GUIDE
-6 specific talking points for parents:
-- How to support exploration without pushing
-- Questions to ask rather than answers to give
-- How to discuss the AI impact on their chosen field
-- How to approach the financial conversation
-- Signs they've found the right major
-- What to do if they change their mind
-
-SECTION 9 — 90-DAY ACTION PLAN
-Month 1: 3 specific actions
-Month 2: 3 specific actions
-Month 3: 3 specific actions
-Include: clubs, summer programs, informational interviews, ways to explore before committing.
-
-SECTION 10 — CLOSING NOTE
-3 warm, specific sentences of encouragement. Reference something real from their results.
-
-Format each section with its title in ALL CAPS on its own line. Use plain text only — no asterisks, no markdown. For bullets use a dash (-). Be specific — name real companies, real courses, real job titles. Total length: 1200-1600 words.`;
+Keep the total response under 800 words. Be specific and warm.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -252,8 +200,8 @@ Format each section with its title in ALL CAPS on its own line. Use plain text o
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-opus-4-8",
-      max_tokens: 4000,
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
       messages: [{ role: "user", content: prompt }],
     }),
   });
