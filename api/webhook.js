@@ -153,7 +153,8 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
   try {
     const firstName   = customerName.split(" ")[0];
     const studentName = quizData?.studentName || "";
-    const html        = buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName);
+    const top1        = quizData?.results?.[0] || null;
+    const html        = buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName, top1);
     const fromAddr  = process.env.RESEND_FROM || "Find Your Major <onboarding@resend.dev>";
 
     const emailRes = await fetch("https://api.resend.com/emails", {
@@ -394,7 +395,7 @@ function buildFallbackSections(quizData) {
 
 // ─── Email builder ────────────────────────────────────────────────────────────
 
-function buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName = "") {
+function buildEmail(firstName, sections, quizData, counselorProfile, sessionId, studentName = "", top1 = null) {
   const results  = quizData?.results || [];
   const NAVY     = "#0F1F3D";
   const AMBER    = "#F5A623";
