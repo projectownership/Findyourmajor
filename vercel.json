@@ -16,8 +16,9 @@
   ],
   "functions": {
     "api/recommend.js":              { "maxDuration": 300 },
-    "api/webhook.js":                { "maxDuration": 300 },
-    "api/webhook-application.js":    { "maxDuration": 300 },
+    "api/webhook.js":                { "maxDuration": 30 },
+    "api/webhook-application.js":    { "maxDuration": 30 },
+    "api/generate-report.js":        { "maxDuration": 300 },
     "api/save-answers.js":           { "maxDuration": 30 },
     "api/counselor-profile.js":      { "maxDuration": 30 },
     "api/results.js":                { "maxDuration": 30 }

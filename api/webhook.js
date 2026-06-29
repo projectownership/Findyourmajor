@@ -44,17 +44,22 @@ export default async function handler(req, res) {
     return res.status(200).json({ received: true });
   }
 
-  // ── Process report then respond to Stripe ──────────────────────────────
-  // NOTE: Vercel kills background tasks after res.json() is called.
-  // We must await the full report generation BEFORE responding.
-  // The 300s timeout (Vercel Pro) gives us plenty of time.
-  try {
-    await processReport({ event, anthropicKey, resendKey, kvUrl, kvToken });
-  } catch (err) {
-    console.error("processReport error:", err.message);
-  }
+  // ── Respond to Stripe immediately (Stripe times out after 30s) ─────────
+  // Then trigger report generation via a separate long-running endpoint
+  res.status(200).json({ received: true });
 
-  return res.status(200).json({ received: true });
+  // Fire-and-forget to the generate endpoint — runs independently of this request
+  const generateUrl = `https://www.findyourmajor.org/api/generate-report`;
+  fetch(generateUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId: session.client_reference_id || session.metadata?.sessionId,
+      customerEmail: session.customer_details?.email,
+      customerName: session.customer_details?.name || "there",
+      stripeEventId: session.id,
+    }),
+  }).catch(err => console.error("generate-report trigger failed:", err.message));
 }
 
 async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken }) {
