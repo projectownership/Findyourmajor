@@ -102,7 +102,7 @@ ${studentState ? `- Student lives in: ${studentState}` : ""}
 AI MAJOR MATCHES:
 ${majorContext || "No major data available"}
 
-Write these 10 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
+Write these 9 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
 
 SECTION 1 — PERSONAL PROFILE
 3 warm sentences about who this student is based on their answers.
@@ -137,15 +137,14 @@ ROW: Year 2 — Core :: [3-4 core major courses, comma-separated]
 ROW: Year 3 — Specialization :: [3-4 courses including one elective area, comma-separated]
 ROW: Year 4 — Capstone :: [thesis/capstone project, 1-2 advanced electives, and an internship or co-op recommendation, comma-separated]
 
-SECTION 9 — PARENT CONVERSATION GUIDE
-4 specific talking points for parents: how to support exploration without pushing, one question to ask instead of giving answers, how to discuss the AI impact on their field, and one sign they've found the right major.
+SECTION 9 — NEXT STEPS
+First, write exactly 3 conversation-starter questions for parents as bullet points (dashes) — questions that open real dialogue rather than lead the student toward a predetermined answer, tailored to this student's specific dealbreakers and values.
+Then, on 3 separate lines (no dashes), write a compressed action timeline in this exact format:
+Month 1: [one concrete, specific exploration action]
+Months 2-3: [one concrete, deeper action — visit, join, or shadow]
+By month 6: [one concrete commitment action — test, apply, or decide]
 
-SECTION 10 — 90-DAY ACTION PLAN
-Month 1 — 3 specific ways to explore these majors this month.
-Month 2 — 3 deeper actions (visit, join, shadow).
-Month 3 — 3 commitment steps (test, apply, decide).
-
-Keep total response under 950 words. Be specific and warm.`;
+Keep total response under 850 words. Be specific and warm.`;
 
   let reportText = "";
   try {
@@ -159,7 +158,7 @@ Keep total response under 950 words. Be specific and warm.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 3800,
+        max_tokens: 3400,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -168,7 +167,7 @@ Keep total response under 950 words. Be specific and warm.`;
     console.log("generate-report: Claude done, chars:", reportText.length);
   } catch (err) {
     console.error("generate-report: Claude failed:", err.message);
-    reportText = `SECTION 1 — PERSONAL PROFILE\nThank you for your purchase. ${top1 ? `Your student's top match is ${top1.name} at ${top1.fitScore}% fit.` : "Please retake the quiz to get your personalized results."}\n\nSECTION 6 — 90-DAY ACTION PLAN\nStart by researching your top major online, connecting with a guidance counselor, and visiting college websites for programs that interest you.`;
+    reportText = `SECTION 1 — PERSONAL PROFILE\nThank you for your purchase. ${top1 ? `Your student's top match is ${top1.name} at ${top1.fitScore}% fit.` : "Please retake the quiz to get your personalized results."}\n\nSECTION 9 — NEXT STEPS\nStart by researching your top major online, connecting with a guidance counselor, and visiting college websites for programs that interest you.`;
   }
 
   // ── Build and send email ───────────────────────────────────────────────
@@ -382,8 +381,7 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
     ${renderSection("RECOMMENDED SCHOOL", "🏫", "Recommended Schools")}
     ${renderTableSection("COLLEGE COST & ROI", "📊", "College Cost & ROI", ["School", "Est. Annual Cost", "Est. 4-Year Total", "Years to Break Even"])}
     ${renderTableSection("4-YEAR COURSE PATH", "📅", "4-Year Course Path", ["Year", "Courses"])}
-    ${renderSection("PARENT CONVERSATION", "🗣️", "Parent Conversation Guide")}
-    ${renderSection("90-DAY", "📅", "90-Day Action Plan")}
+    ${renderSection("NEXT STEPS", "🗣️", "Next Steps")}
 
     <div style="background:#fef3dc;border:1px solid #fde6b8;border-radius:10px;padding:16px;margin-bottom:20px;">
       <strong style="font-size:13px;color:#92400e;">💡 Free Salary Research</strong>
