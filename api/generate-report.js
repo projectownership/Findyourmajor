@@ -380,6 +380,7 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
     ${renderTableSection("CAREER & SALARY", "💰", "Career & Salary Deep-Dive", ["Major", "Entry", "Mid-Career", "Senior", "Known Hirers"])}
     ${renderSection("RECOMMENDED SCHOOL", "🏫", "Recommended Schools")}
     ${renderTableSection("COLLEGE COST & ROI", "📊", "College Cost & ROI", ["School", "Est. Annual Cost", "Est. 4-Year Total", "Years to Break Even"])}
+    ${sections && Object.keys(sections).some(k => k.includes("COLLEGE COST & ROI")) ? `<p style="font-size:11px;color:#94a3b8;margin:-16px 0 24px;padding:0 4px;line-height:1.5;">How "Years to Break Even" is calculated: estimated 4-year total cost ÷ entry-level salary for that major (see Career &amp; Salary Deep-Dive above). It's a simplified payback estimate — it doesn't account for financial aid, scholarships, loan interest, or raises over time.</p>` : ""}
     ${renderTableSection("4-YEAR COURSE PATH", "📅", "4-Year Course Path", ["Year", "Courses"])}
     ${renderSection("NEXT STEPS", "🗣️", "Next Steps")}
 
