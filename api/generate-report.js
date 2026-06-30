@@ -102,7 +102,7 @@ ${studentState ? `- Student lives in: ${studentState}` : ""}
 AI MAJOR MATCHES:
 ${majorContext || "No major data available"}
 
-Write these 6 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points.
+Write these 8 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
 
 SECTION 1 — PERSONAL PROFILE
 3 warm sentences about who this student is based on their answers.
@@ -116,11 +116,17 @@ For each major: why it fits this student, the salary range, and top 2 career pat
 SECTION 4 — ${wildcard ? `WILDCARD: ${wildcard.name}` : "HIDDEN GEM MAJOR"}
 Why this surprising pick makes sense. What the career looks like. Why it stands out.
 
-SECTION 5 — RECOMMENDED SCHOOLS
+SECTION 5 — CAREER & SALARY DEEP-DIVE
+For the top 2 majors: entry-level salary + job title, mid-career salary + job title, senior salary + job title, and 2 real companies known for hiring from this field.
+
+SECTION 6 — RECOMMENDED SCHOOLS
 ${studentState ? `Student is from ${studentState} — list in-state options first (they save $20,000+/year).` : ""}
 For the top 2 majors, name 3 schools each: one affordable, one mid-range, one top-ranked. One sentence on why each is worth considering.
 
-SECTION 6 — 90-DAY ACTION PLAN
+SECTION 7 — PARENT CONVERSATION GUIDE
+4 specific talking points for parents: how to support exploration without pushing, one question to ask instead of giving answers, how to discuss the AI impact on their field, and one sign they've found the right major.
+
+SECTION 8 — 90-DAY ACTION PLAN
 Month 1 — 3 specific ways to explore these majors this month.
 Month 2 — 3 deeper actions (visit, join, shadow).
 Month 3 — 3 commitment steps (test, apply, decide).
@@ -139,7 +145,7 @@ Keep total response under 700 words. Be specific and warm.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2000,
+        max_tokens: 2800,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -309,7 +315,9 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
 
     ${renderSection("YOUR #1 MAJOR", "🔍", "Your #1 Major — Deep Dive")}
     ${renderSection("WILDCARD", "✨", "Wildcard Spotlight")}
+    ${renderSection("CAREER & SALARY", "💰", "Career & Salary Deep-Dive")}
     ${renderSection("RECOMMENDED SCHOOL", "🏫", "Recommended Schools")}
+    ${renderSection("PARENT CONVERSATION", "🗣️", "Parent Conversation Guide")}
     ${renderSection("90-DAY", "📅", "90-Day Action Plan")}
 
     <div style="background:#fef3dc;border:1px solid #fde6b8;border-radius:10px;padding:16px;margin-bottom:20px;">
