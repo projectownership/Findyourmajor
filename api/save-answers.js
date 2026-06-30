@@ -30,14 +30,14 @@ export default async function handler(req, res) {
 
     const payload = JSON.stringify({ answers, results, refCode: refCode || "", studentName: studentName || "", studentState: studentState || "", reportType: reportType || "parent", createdAt: Date.now() });
 
-    // SET key value EX 86400 (24 hours)
-    const kvRes = await fetch(`${url}/set/session:${sessionId}`, {
+    // Upstash REST API: POST /set/{key}?EX={seconds}  with raw value as body
+    const kvRes = await fetch(`${url}/set/session:${sessionId}?EX=86400`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
+        "Content-Type": "text/plain",
       },
-      body: JSON.stringify({ value: payload, ex: 86400 }),
+      body: payload,
     });
 
     if (!kvRes.ok) {

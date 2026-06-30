@@ -161,10 +161,10 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
 
     // Mark this Stripe session as processed (7-day TTL) to prevent duplicate sends
     if (stripeEventId && kvUrl && kvToken) {
-      fetch(`${kvUrl}/set/processed:${stripeEventId}`, {
+      fetch(`${kvUrl}/set/processed:${stripeEventId}?EX=${60 * 60 * 24 * 7}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ value: "1", ex: 60 * 60 * 24 * 7 }), // 7 days
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "text/plain" },
+        body: "1",
       }).catch(() => {});
     }
   } catch (err) {
@@ -178,10 +178,10 @@ async function processReport({ event, anthropicKey, resendKey, kvUrl, kvToken })
       refCode: quizData.refCode || "",
       savedAt: Date.now(),
     });
-    fetch(`${kvUrl}/set/report:${sessionId}`, {
+    fetch(`${kvUrl}/set/report:${sessionId}?EX=${60 * 60 * 24 * 30}`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ value: reportPayload, ex: 60 * 60 * 24 * 30 }), // 30 days
+      headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "text/plain" },
+      body: reportPayload,
     }).catch(() => {});
   }
 

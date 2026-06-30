@@ -58,9 +58,9 @@ export default async function handler(req, res) {
         method: "POST",
         headers: {
           Authorization: `Bearer ${kvToken}`,
-          "Content-Type": "application/json",
+          "Content-Type": "text/plain",
         },
-        body: JSON.stringify({ value: JSON.stringify(profile) }),
+        body: JSON.stringify(profile),
       });
       if (!r.ok) {
         const err = await r.text().catch(() => "");

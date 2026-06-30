@@ -46,7 +46,12 @@ export default async function handler(req, res) {
       });
       const d = await r.json();
       if (d.result) {
-        quizData = JSON.parse(d.result);
+        let parsed = JSON.parse(d.result);
+        // Defensive: handle old double-wrapped format { value: "...", ex: N } from before the fix
+        if (parsed && typeof parsed === "object" && typeof parsed.value === "string" && !parsed.results) {
+          try { parsed = JSON.parse(parsed.value); } catch {}
+        }
+        quizData = parsed;
         console.log("generate-report: quiz data loaded, majors:", quizData?.results?.length);
       } else {
         console.warn("generate-report: no quiz data for session:", sessionId);
@@ -178,10 +183,10 @@ Keep total response under 700 words. Be specific and warm.`;
   // ── Mark as processed ──────────────────────────────────────────────────
   if (stripeEventId && kvUrl && kvToken) {
     try {
-      await fetch(`${kvUrl}/set/processed:${stripeEventId}`, {
+      await fetch(`${kvUrl}/set/processed:${stripeEventId}?EX=${60 * 60 * 24 * 7}`, {
         method:  "POST",
-        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-        body:    JSON.stringify({ value: "1", ex: 60 * 60 * 24 * 7 }),
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "text/plain" },
+        body:    "1",
       });
     } catch {}
   }
@@ -189,10 +194,10 @@ Keep total response under 700 words. Be specific and warm.`;
   // ── Save results for deep-link ─────────────────────────────────────────
   if (sessionId && kvUrl && kvToken && results.length) {
     try {
-      await fetch(`${kvUrl}/set/report:${sessionId}`, {
+      await fetch(`${kvUrl}/set/report:${sessionId}?EX=${60 * 60 * 24 * 30}`, {
         method:  "POST",
-        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "application/json" },
-        body:    JSON.stringify({ value: JSON.stringify({ results, savedAt: Date.now() }), ex: 60 * 60 * 24 * 30 }),
+        headers: { Authorization: `Bearer ${kvToken}`, "Content-Type": "text/plain" },
+        body:    JSON.stringify({ results, savedAt: Date.now() }),
       });
     } catch {}
   }
