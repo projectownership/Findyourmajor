@@ -1441,11 +1441,11 @@ export default function Quiz() {
                     });
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
-                    const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
+                    const stripeUrl = `https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");
                   } catch (err) {
                     console.warn("Could not save answers, redirecting anyway:", err);
-                    window.open("https://findyourmajor.org/report", "_blank");
+                    window.open("https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01", "_blank");
                   }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "18px 0" : "18px 52px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 17, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 24px rgba(245,166,35,.45)", letterSpacing: "-.2px" }}>
