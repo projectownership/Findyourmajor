@@ -102,7 +102,7 @@ ${studentState ? `- Student lives in: ${studentState}` : ""}
 AI MAJOR MATCHES:
 ${majorContext || "No major data available"}
 
-Write these 9 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
+Write these 10 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
 
 SECTION 1 — PERSONAL PROFILE
 3 warm sentences about who this student is based on their answers.
@@ -117,24 +117,35 @@ SECTION 4 — ${wildcard ? `WILDCARD: ${wildcard.name}` : "HIDDEN GEM MAJOR"}
 Why this surprising pick makes sense. What the career looks like. Why it stands out.
 
 SECTION 5 — CAREER & SALARY DEEP-DIVE
-For the top 2 majors: entry-level salary + job title, mid-career salary + job title, senior salary + job title, and 2 real companies known for hiring from this field.
+For the top 2 majors, output exactly 2 lines in this exact format — keep the literal words "ROW:" and the "::" separators:
+ROW: [Major Name] :: [Entry salary] – [Entry job title] :: [Mid-career salary] – [Mid-career job title] :: [Senior salary] – [Senior job title] :: [2 real companies known for hiring from this field]
+Example: ROW: Computer Science :: $95k – Software Engineer I :: $130k – Senior Software Engineer :: $175k+ – Staff Engineer :: Google, Microsoft
 
 SECTION 6 — RECOMMENDED SCHOOLS
 ${studentState ? `Student is from ${studentState} — list in-state options first (they save $20,000+/year).` : ""}
 For the top 2 majors, name 3 schools each: one affordable, one mid-range, one top-ranked. One sentence on why each is worth considering.
 
-SECTION 7 — 4-YEAR COURSE PATH
-For the #1 major (${top1?.name || "the top match"}), lay out a realistic 4-year course path. Year 1 — Foundations: 3-4 intro courses. Year 2 — Core: 3-4 core major courses. Year 3 — Specialization: 3-4 courses including at least one elective area. Year 4 — Capstone: thesis/capstone project, 1-2 advanced electives, and internship or co-op recommendation. Keep each year to one line of comma-separated course names.
+SECTION 7 — COLLEGE COST & ROI
+For all 6 schools named in Section 6, output one line per school in this exact format — keep the literal "ROW:" and "::":
+ROW: [School Name] :: [Est. annual cost] :: [Est. 4-year total cost] :: [Years to break even]
+"Years to break even" = 4-year total cost ÷ entry-level salary (from Section 5) for that school's major, rounded to 1 decimal place. Use your best general knowledge of each school's published tuition, rounded to the nearest $1,000 — these are estimates, not guarantees. After all the ROW lines, add one plain sentence (no "ROW:" prefix): "Estimates only — confirm exact costs with each school's net price calculator before deciding."
 
-SECTION 8 — PARENT CONVERSATION GUIDE
+SECTION 8 — 4-YEAR COURSE PATH
+For the #1 major (${top1?.name || "the top match"}), output exactly 4 lines in this exact format — keep the literal "ROW:" and "::":
+ROW: Year 1 — Foundations :: [3-4 intro courses, comma-separated]
+ROW: Year 2 — Core :: [3-4 core major courses, comma-separated]
+ROW: Year 3 — Specialization :: [3-4 courses including one elective area, comma-separated]
+ROW: Year 4 — Capstone :: [thesis/capstone project, 1-2 advanced electives, and an internship or co-op recommendation, comma-separated]
+
+SECTION 9 — PARENT CONVERSATION GUIDE
 4 specific talking points for parents: how to support exploration without pushing, one question to ask instead of giving answers, how to discuss the AI impact on their field, and one sign they've found the right major.
 
-SECTION 9 — 90-DAY ACTION PLAN
+SECTION 10 — 90-DAY ACTION PLAN
 Month 1 — 3 specific ways to explore these majors this month.
 Month 2 — 3 deeper actions (visit, join, shadow).
 Month 3 — 3 commitment steps (test, apply, decide).
 
-Keep total response under 800 words. Be specific and warm.`;
+Keep total response under 950 words. Be specific and warm.`;
 
   let reportText = "";
   try {
@@ -148,7 +159,7 @@ Keep total response under 800 words. Be specific and warm.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 3200,
+        max_tokens: 3800,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -235,11 +246,8 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
   }
   if (current) sections[current] = buffer.join("\n").trim();
 
-  function renderSection(keyFragment, icon, title) {
-    const entry = Object.entries(sections).find(([k]) => k.includes(keyFragment));
-    if (!entry) return "";
-    const content = entry[1];
-    const lines   = content.split("\n");
+  function proseToHtml(content) {
+    const lines = content.split("\n");
     let html = "";
     let listItems = [];
     const flush = () => {
@@ -259,13 +267,65 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
       }
     }
     flush();
+    return html;
+  }
+
+  function wrapSection(icon, title, innerHtml) {
     return `<div style="margin-bottom:24px;">
       <div style="background:${NAVY};border-radius:8px 8px 0 0;padding:10px 18px;display:flex;align-items:center;gap:8px;">
         <span>${icon}</span>
         <span style="color:${AMBER};font-weight:800;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;">${title}</span>
       </div>
-      <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:18px 18px 8px;">${html}</div>
+      <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;padding:18px 18px 8px;">${innerHtml}</div>
     </div>`;
+  }
+
+  function renderSection(keyFragment, icon, title) {
+    const entry = Object.entries(sections).find(([k]) => k.includes(keyFragment));
+    if (!entry) return "";
+    return wrapSection(icon, title, proseToHtml(entry[1]));
+  }
+
+  // Renders a section as an HTML table when Claude follows the "ROW: a :: b :: c" format.
+  // Falls back to normal paragraph rendering if the model didn't produce row-formatted lines,
+  // so a formatting slip never results in a blank section.
+  function renderTableSection(keyFragment, icon, title, headers) {
+    const entry = Object.entries(sections).find(([k]) => k.includes(keyFragment));
+    if (!entry) return "";
+    const content  = entry[1];
+    const allLines = content.split("\n").map(l => l.trim()).filter(Boolean);
+    const rowLines = allLines.filter(l => /^ROW:/i.test(l));
+    const noteLines = allLines.filter(l => !/^ROW:/i.test(l));
+
+    if (!rowLines.length) {
+      // Fallback: model didn't use the row format, render as prose instead.
+      return wrapSection(icon, title, proseToHtml(content));
+    }
+
+    const rows = rowLines.map(l =>
+      l.replace(/^ROW:\s*/i, "").split("::").map(c => c.trim())
+    );
+
+    const tableHtml = `<div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>${headers.map(h =>
+            `<th style="text-align:left;padding:8px 10px;background:#f1f5f9;color:#475569;font-size:10px;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid #e2e8f0;white-space:nowrap;">${h}</th>`
+          ).join("")}</tr>
+        </thead>
+        <tbody>
+          ${rows.map((r, i) => `<tr style="background:${i % 2 === 0 ? "#fff" : "#f8faff"};">${
+            r.map(c => `<td style="padding:9px 10px;color:#334155;border-bottom:1px solid #eef2f7;vertical-align:top;">${c}</td>`).join("")
+          }</tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+
+    const notesHtml = noteLines.length
+      ? `<p style="font-size:12px;color:#94a3b8;margin:10px 0 0;">${noteLines.join(" ")}</p>`
+      : "";
+
+    return wrapSection(icon, title, tableHtml + notesHtml);
   }
 
   // Major cards
@@ -318,9 +378,10 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
 
     ${renderSection("YOUR #1 MAJOR", "🔍", "Your #1 Major — Deep Dive")}
     ${renderSection("WILDCARD", "✨", "Wildcard Spotlight")}
-    ${renderSection("CAREER & SALARY", "💰", "Career & Salary Deep-Dive")}
+    ${renderTableSection("CAREER & SALARY", "💰", "Career & Salary Deep-Dive", ["Major", "Entry", "Mid-Career", "Senior", "Known Hirers"])}
     ${renderSection("RECOMMENDED SCHOOL", "🏫", "Recommended Schools")}
-    ${renderSection("4-YEAR COURSE PATH", "📅", "4-Year Course Path")}
+    ${renderTableSection("COLLEGE COST & ROI", "📊", "College Cost & ROI", ["School", "Est. Annual Cost", "Est. 4-Year Total", "Years to Break Even"])}
+    ${renderTableSection("4-YEAR COURSE PATH", "📅", "4-Year Course Path", ["Year", "Courses"])}
     ${renderSection("PARENT CONVERSATION", "🗣️", "Parent Conversation Guide")}
     ${renderSection("90-DAY", "📅", "90-Day Action Plan")}
 
