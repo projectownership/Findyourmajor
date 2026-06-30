@@ -695,7 +695,7 @@ function shareText(results, sessionId) {
   const reportUrl = sessionId
     ? `https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01?client_reference_id=${sessionId}`
     : 'https://findyourmajor.org';
-  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($14.99)\nIncludes real company names, salary breakdowns, school recommendations, and a 90-day action plan — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
+  return `Hey! I just took a free AI quiz that matched me to my top college majors.\n\nMy top matches:\n${top3}${wildcardLine}\n\n---\nWant the full Parent Report based on MY quiz answers? ($14.99)\nIncludes real company names, salary breakdowns, a college cost & ROI breakdown, and school recommendations — all personalized to my results:\nThis link is tied to my specific quiz answers:\n${reportUrl}\n\n(Link expires in 24 hours)`;
 }
 
 // ─── VideoSection ─────────────────────────────────────────────────────────────
@@ -1425,7 +1425,7 @@ export default function Quiz() {
               <em style={{ color: AMBER, fontStyle: "italic" }}>Yours doesn't have to.</em>
             </h3>
             <p style={{ fontSize: mobile ? 14 : 16, color: "rgba(255,255,255,.75)", lineHeight: 1.7, marginBottom: 28, maxWidth: 440, margin: "0 auto 28px" }}>
-              For $14.99, your student gets a personalized AI report based on their exact quiz answers — salary data, school recommendations, a 4-year course plan, and a parent conversation guide. It's the clearest picture of their future you can get in under 60 seconds.
+              For $14.99, your student gets a personalized AI report based on their exact quiz answers — salary data, a college cost & ROI breakdown, school recommendations, a 4-year course plan, and a parent conversation guide. It's the clearest picture of their future you can get in under 60 seconds.
             </p>
 
             {/* Price + CTA */}
@@ -1441,11 +1441,11 @@ export default function Quiz() {
                     });
                     const data = await res.json();
                     const sessionId = data.sessionId || "";
-                    const stripeUrl = `https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01?client_reference_id=${sessionId}`;
+                    const stripeUrl = `https://findyourmajor.org/report?client_reference_id=${sessionId}`;
                     window.open(stripeUrl, "_blank");
                   } catch (err) {
                     console.warn("Could not save answers, redirecting anyway:", err);
-                    window.open("https://buy.stripe.com/4gM6oz43Sh2faqQ5Jb9bO01", "_blank");
+                    window.open("https://findyourmajor.org/report", "_blank");
                   }
                 }}
                 style={{ background: AMBER, color: NAVY, border: "none", padding: mobile ? "18px 0" : "18px 52px", width: mobile ? "100%" : "auto", borderRadius: 50, fontSize: 17, fontWeight: 900, cursor: "pointer", boxShadow: "0 4px 24px rgba(245,166,35,.45)", letterSpacing: "-.2px" }}>
@@ -1478,9 +1478,9 @@ export default function Quiz() {
             ["In-depth major deep-dive",      false, true],
             ["Salary ranges by career level", false, true],
             ["School recommendations",        false, true],
+            ["College cost & ROI breakdown",  false, true],
             ["4-year course path",            false, true],
-            ["Parent conversation guide",     false, true],
-            ["90-day action plan",            false, true],
+            ["Next steps & conversation guide", false, true],
           ].map(([label, free, paid], i) => (
             <div key={label} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "10px 16px", borderTop: "1px solid #F0F4FA", background: i % 2 === 0 ? WHITE : "#FAFBFF", alignItems: "center" }}>
               <div style={{ fontSize: 13, color: NAVY, fontWeight: 500 }}>{label}</div>

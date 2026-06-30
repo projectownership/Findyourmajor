@@ -65,6 +65,13 @@
   .salary-label { font-size: 11px; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
   .salary-amount { font-size: 18px; font-weight: 800; color: #0F1F3D; }
 
+  /* COST & ROI TABLE */
+  .roi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .roi-table th { text-align: left; padding: 8px 10px; background: #F1F5F9; color: #475569; font-size: 10px; letter-spacing: .5px; text-transform: uppercase; border-bottom: 2px solid #E2E8F0; white-space: nowrap; }
+  .roi-table td { padding: 9px 10px; color: #334155; border-bottom: 1px solid #EEF2F7; vertical-align: top; }
+  .roi-table tr:nth-child(even) td { background: #F8FAFF; }
+  .roi-note { font-size: 11px; color: #94A3B8; margin-top: 10px; line-height: 1.5; }
+
   /* CTA */
   .report-cta { margin: 20px 16px 0; background: linear-gradient(135deg, #0F1F3D, #1a3a6e); border-radius: 16px; padding: 28px; text-align: center; color: #fff; }
   .report-cta h2 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
@@ -100,7 +107,7 @@
     <p>Everything you need to have a great college major conversation — personalized to your student's specific quiz answers.</p>
     <div class="report-meta">
       <div class="report-meta-item"><strong>5</strong>Majors analyzed</div>
-      <div class="report-meta-item"><strong>10</strong>Report sections</div>
+      <div class="report-meta-item"><strong>9</strong>Report sections</div>
       <div class="report-meta-item"><strong>&lt;60s</strong>Delivery time</div>
     </div>
   </div>
@@ -230,7 +237,31 @@
     </div>
   </div>
 
-  <!-- SECTIONS 6-10: BLURRED -->
+  <!-- SECTION 6: COLLEGE COST & ROI (blurred) -->
+  <div class="section-block">
+    <div class="section-head"><span class="section-head-icon">📊</span><span class="section-head-title">College Cost & ROI</span></div>
+    <div style="position:relative;">
+      <div class="section-body blurred" style="min-height:200px;">
+        <table class="roi-table">
+          <thead>
+            <tr><th>School</th><th>Est. Annual Cost</th><th>Est. 4-Year Total</th><th>Years to Break Even</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Univ. of Illinois Urbana-Champaign</td><td>$18,000/yr</td><td>$72,000</td><td>0.8 years</td></tr>
+            <tr><td>Worcester Polytechnic Institute</td><td>$58,000/yr</td><td>$232,000</td><td>2.4 years</td></tr>
+            <tr><td>Carnegie Mellon University</td><td>$62,000/yr</td><td>$248,000</td><td>2.6 years</td></tr>
+          </tbody>
+        </table>
+        <p class="roi-note">"Years to break even" = estimated 4-year cost ÷ entry-level salary for that major. Estimates only — confirm exact costs with each school's net price calculator.</p>
+      </div>
+      <div class="blur-cta">
+        <a href="/quiz" class="blur-cta-btn">See the cost breakdown for your top schools →</a>
+        <p>Compares all of your student's recommended schools</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTIONS 7-9: BLURRED -->
   <div class="section-block">
     <div class="section-head"><span class="section-head-icon">📅</span><span class="section-head-title">4-Year Course Path</span></div>
     <div style="position:relative;">
@@ -247,18 +278,18 @@
   </div>
 
   <div class="section-block">
-    <div class="section-head"><span class="section-head-icon">🗣️</span><span class="section-head-title">Parent Conversation Guide</span></div>
+    <div class="section-head"><span class="section-head-icon">🗣️</span><span class="section-head-title">Next Steps</span></div>
     <div style="position:relative;">
       <div class="section-body blurred" style="min-height:160px;">
-        <p>Based on your student's quiz answers, here are 6 questions designed to open a real conversation — not lead them toward a predetermined answer:</p>
+        <p>Based on your student's quiz answers, here are conversation starters designed to open a real dialogue — not lead them toward a predetermined answer — plus a simple month-by-month action timeline:</p>
         <ul>
           <li>When you imagine yourself at work in 10 years, what does the room look like? Who's there?</li>
           <li>Is there a problem in the world you find yourself thinking about unprompted?</li>
         </ul>
       </div>
       <div class="blur-cta">
-        <a href="/quiz" class="blur-cta-btn">Unlock the full conversation guide →</a>
-        <p>6 tailored questions + 90-day action plan</p>
+        <a href="/quiz" class="blur-cta-btn">Unlock your full conversation guide →</a>
+        <p>3 tailored questions + a 6-month action timeline</p>
       </div>
     </div>
   </div>
