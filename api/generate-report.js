@@ -102,7 +102,7 @@ ${studentState ? `- Student lives in: ${studentState}` : ""}
 AI MAJOR MATCHES:
 ${majorContext || "No major data available"}
 
-Write these 8 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
+Write these 9 sections. Use plain text only — no asterisks, no markdown. Use dashes for bullet points. Be specific and concise — this needs to stay efficient.
 
 SECTION 1 — PERSONAL PROFILE
 3 warm sentences about who this student is based on their answers.
@@ -123,15 +123,18 @@ SECTION 6 — RECOMMENDED SCHOOLS
 ${studentState ? `Student is from ${studentState} — list in-state options first (they save $20,000+/year).` : ""}
 For the top 2 majors, name 3 schools each: one affordable, one mid-range, one top-ranked. One sentence on why each is worth considering.
 
-SECTION 7 — PARENT CONVERSATION GUIDE
+SECTION 7 — 4-YEAR COURSE PATH
+For the #1 major (${top1?.name || "the top match"}), lay out a realistic 4-year course path. Year 1 — Foundations: 3-4 intro courses. Year 2 — Core: 3-4 core major courses. Year 3 — Specialization: 3-4 courses including at least one elective area. Year 4 — Capstone: thesis/capstone project, 1-2 advanced electives, and internship or co-op recommendation. Keep each year to one line of comma-separated course names.
+
+SECTION 8 — PARENT CONVERSATION GUIDE
 4 specific talking points for parents: how to support exploration without pushing, one question to ask instead of giving answers, how to discuss the AI impact on their field, and one sign they've found the right major.
 
-SECTION 8 — 90-DAY ACTION PLAN
+SECTION 9 — 90-DAY ACTION PLAN
 Month 1 — 3 specific ways to explore these majors this month.
 Month 2 — 3 deeper actions (visit, join, shadow).
 Month 3 — 3 commitment steps (test, apply, decide).
 
-Keep total response under 700 words. Be specific and warm.`;
+Keep total response under 800 words. Be specific and warm.`;
 
   let reportText = "";
   try {
@@ -145,7 +148,7 @@ Keep total response under 700 words. Be specific and warm.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 2800,
+        max_tokens: 3200,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -317,6 +320,7 @@ function buildEmail({ firstName, studentName, top1, results, reportText, quizDat
     ${renderSection("WILDCARD", "✨", "Wildcard Spotlight")}
     ${renderSection("CAREER & SALARY", "💰", "Career & Salary Deep-Dive")}
     ${renderSection("RECOMMENDED SCHOOL", "🏫", "Recommended Schools")}
+    ${renderSection("4-YEAR COURSE PATH", "📅", "4-Year Course Path")}
     ${renderSection("PARENT CONVERSATION", "🗣️", "Parent Conversation Guide")}
     ${renderSection("90-DAY", "📅", "90-Day Action Plan")}
 
