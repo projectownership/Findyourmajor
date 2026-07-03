@@ -106,7 +106,7 @@ Rules:
       },
       body: JSON.stringify({
         model,
-        max_tokens: 1200,
+        max_tokens: 4000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
@@ -118,12 +118,24 @@ Rules:
     }
 
     const data = await anthropicRes.json();
+
+    if (data.stop_reason === "max_tokens") {
+      console.error("Anthropic response truncated at max_tokens.", { usage: data.usage });
+    }
+
     const text = (data.content || []).map((b) => b.text || "").join("");
 
     const results = parseResults(text);
 
     if (!results || results.length === 0) {
-      return res.status(502).json({ error: "Could not parse AI response.", raw: text.slice(0, 300) });
+      console.error("Parse failure. stop_reason:", data.stop_reason, "raw tail:", text.slice(-300));
+      return res.status(502).json({
+        error: data.stop_reason === "max_tokens"
+          ? "AI response was truncated before completing. Try again."
+          : "Could not parse AI response.",
+        detail: data.stop_reason,
+        raw: text.slice(0, 300),
+      });
     }
 
     return res.status(200).json({ results });
